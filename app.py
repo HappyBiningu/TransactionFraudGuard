@@ -106,6 +106,75 @@ if is_authenticated:
             --gradient-blue: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             --gradient-green: linear-gradient(135deg, var(--secondary-color), var(--secondary-light));
             --gradient-amber: linear-gradient(135deg, var(--tertiary-color), var(--tertiary-light));
+            --danger-color: #DC2626;
+            --warning-color: #F59E0B;
+            --success-color: #10B981;
+        }
+        
+        /* Dashboard Pills */
+        .dashboard-pill {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            background: var(--gradient-blue);
+            margin: 0 4px;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+        
+        /* System Status Indicators */
+        .system-status {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .system-status-item {
+            display: flex;
+            align-items: center;
+            background-color: rgba(249, 250, 251, 0.7);
+            padding: 6px 12px;
+            border-radius: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-indicator.green {
+            background-color: var(--success-color);
+            box-shadow: 0 0 5px var(--success-color);
+        }
+        
+        .status-indicator.yellow {
+            background-color: var(--warning-color);
+            box-shadow: 0 0 5px var(--warning-color);
+        }
+        
+        .status-indicator.red {
+            background-color: var(--danger-color);
+            box-shadow: 0 0 5px var(--danger-color);
+        }
+        
+        .status-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        /* Enhanced Metrics Overview */
+        .metrics-overview {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
         }
         
         .main-container {
@@ -519,10 +588,48 @@ if is_authenticated:
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<h1 class="main-header">Unified Financial Intelligence Platform</h1>', unsafe_allow_html=True)
     
+    # Add enhanced dashboard header with date information
+    current_date = datetime.now().strftime("%B %d, %Y")
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <p style="color: #6B7280; font-size: 16px; margin-top: -15px;">
+            Financial Intelligence Dashboard • Last Updated: {current_date}
+        </p>
+        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 15px;">
+            <span class="dashboard-pill">Real-time Analytics</span>
+            <span class="dashboard-pill">Risk Assessment</span>
+            <span class="dashboard-pill">Multi-account Detection</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Add system status indicators
+    st.markdown("""
+    <div class="system-status">
+        <div class="system-status-item">
+            <span class="status-indicator green"></span>
+            <span class="status-text">Accounts Analysis</span>
+        </div>
+        <div class="system-status-item">
+            <span class="status-indicator green"></span>
+            <span class="status-text">Limit Monitoring</span>
+        </div>
+        <div class="system-status-item">
+            <span class="status-indicator green"></span>
+            <span class="status-text">Fraud Detection</span>
+        </div>
+        <div class="system-status-item">
+            <span class="status-indicator green"></span>
+            <span class="status-text">Data Processing</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
     # Summary cards section
     st.markdown('<h2 class="section-header">Intelligence Dashboard</h2>', unsafe_allow_html=True)
     
-    # Create a container for metrics
+    # Create a container for metrics with enhanced appearance
+    st.markdown('<div class="metrics-overview">', unsafe_allow_html=True)
     metrics_cols = st.columns([1,1,1])
     
     # --- Transactions.db ---
@@ -534,21 +641,62 @@ if is_authenticated:
         # Format the total amount correctly
         formatted_amount = f"${total_amt:,.2f}" if isinstance(total_amt, (int, float)) else "$0.00"
         
+        # Get current month stats
+        current_month = datetime.now().strftime("%Y-%m")
+        current_month_tx = fetch_metric(
+            DBS["Accounts Analysis"], 
+            f"SELECT COUNT(*) FROM transactions WHERE strftime('%Y-%m', timestamp) = '{current_month}'"
+        )
+        
+        # Calculate month-over-month change
+        previous_month = (datetime.now() - timedelta(days=30)).strftime("%Y-%m")
+        previous_month_tx = fetch_metric(
+            DBS["Accounts Analysis"], 
+            f"SELECT COUNT(*) FROM transactions WHERE strftime('%Y-%m', timestamp) = '{previous_month}'"
+        )
+        
+        # Calculate percent change
+        if previous_month_tx > 0:
+            percent_change = ((current_month_tx - previous_month_tx) / previous_month_tx) * 100
+        else:
+            percent_change = 0
+            
+        # Determine trend direction and icon
+        if percent_change > 0:
+            trend_icon = "📈"
+            trend_class = "trend-up"
+        elif percent_change < 0:
+            trend_icon = "📉"
+            trend_class = "trend-down"
+        else:
+            trend_icon = "⚖️"
+            trend_class = "trend-neutral"
+        
         st.markdown(f"""
-        <div class="metric-card metric-card-accounts">
-            <div class="metric-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#2563EB" viewBox="0 0 16 16">
-                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
-                </svg>
+        <div class="enhanced-metric-card accounts-card">
+            <div class="metric-card-header">
+                <div class="metric-card-icon">💳</div>
+                <div class="metric-card-title">Account Activity</div>
             </div>
-            <div class="module-title module-title-accounts">Account Analysis</div>
-            <div class="metric-label">Transactions</div>
-            <div class="metric-value metric-value-accounts">{total_tx:,}</div>
-            <div class="metric-label">Unique Individuals</div>
-            <div class="metric-value metric-value-accounts">{unique_individuals:,}</div>
-            <div class="metric-label">Total Amount</div>
-            <div class="metric-value metric-value-accounts">{formatted_amount}</div>
+            <div class="metric-card-body">
+                <div class="primary-metric">{total_tx:,}</div>
+                <div class="metric-label">Total Transactions</div>
+                <div class="metric-details">
+                    <div class="secondary-metric">
+                        <span class="secondary-value">{unique_individuals:,}</span>
+                        <span class="secondary-label">Unique Customers</span>
+                    </div>
+                    <div class="secondary-metric">
+                        <span class="secondary-value">{formatted_amount}</span>
+                        <span class="secondary-label">Total Volume</span>
+                    </div>
+                </div>
+                <div class="metric-trend {trend_class}">
+                    <span class="trend-icon">{trend_icon}</span>
+                    <span class="trend-value">{abs(percent_change):.1f}%</span>
+                    <span class="trend-period">vs last month</span>
+                </div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
