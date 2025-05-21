@@ -64,12 +64,12 @@ def render_left_navigation():
             st.markdown("<h2 style='text-align: center; color: #1E3A8A; margin-bottom: 2rem;'>Financial Intelligence Platform</h2>", unsafe_allow_html=True)
             
             # Navigation links
-            st.page_link("app.py", label="📊 Dashboard", icon="house")
-            st.page_link("pages/1_multiple_accounts.py", label="🔍 Multiple Accounts", icon="people")
-            st.page_link("pages/2_limit_monitoring.py", label="🚦 Limit Monitoring", icon="exclamation-triangle")
-            st.page_link("pages/3_fraud_detection.py", label="🛡️ Fraud Detection", icon="shield-exclamation")
-            st.page_link("pages/4_financial_alerts.py", label="🔔 Financial Alerts", icon="bell")
-            st.page_link("pages/user_profile.py", label="👤 User Profile", icon="person")
+            st.page_link("app.py", label="📊 Dashboard")
+            st.page_link("pages/1_multiple_accounts.py", label="👥 Multiple Accounts")
+            st.page_link("pages/2_limit_monitoring.py", label="⚠️ Limit Monitoring")
+            st.page_link("pages/3_fraud_detection.py", label="🛡️ Fraud Detection")
+            st.page_link("pages/4_financial_alerts.py", label="🔔 Financial Alerts")
+            st.page_link("pages/user_profile.py", label="👤 User Profile")
             
             # Display user info in sidebar
             st.markdown(f"""
