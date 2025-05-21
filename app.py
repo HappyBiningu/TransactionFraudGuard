@@ -39,10 +39,10 @@ st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide")
 # Check if user is logged in
 is_authenticated = login_page()
 
-# Render sidebar navigation
-render_sidebar()
-
+# Only render sidebar if user is authenticated
 if is_authenticated:
+    # Render sidebar navigation
+    render_sidebar()
     st.title("📊 Unified Financial Intelligence Dashboard")
     
     # Summary cards
