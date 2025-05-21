@@ -36,6 +36,10 @@ st.set_page_config(
 # Apply custom theme outside main function
 apply_custom_theme()
 
+# Completely remove the default Streamlit sidebar
+from streamlit_config import remove_streamlit_sidebar
+remove_streamlit_sidebar()
+
 # Render top navigation outside main function
 render_top_navigation()
 

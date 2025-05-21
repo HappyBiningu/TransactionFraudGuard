@@ -79,9 +79,9 @@ def calculate_kpi_trend(db_file, query_current, query_previous):
 # Page layout with hidden sidebar
 st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide", menu_items=None)
 
-# Hide the default Streamlit sidebar
-from streamlit_config import hide_streamlit_sidebar
-hide_streamlit_sidebar()
+# Completely remove the default Streamlit sidebar
+from streamlit_config import remove_streamlit_sidebar
+remove_streamlit_sidebar()
 
 # Function to get system users data
 def get_system_users():
