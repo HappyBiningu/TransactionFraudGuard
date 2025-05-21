@@ -20,13 +20,22 @@ st.set_page_config(page_title="User Profile", page_icon="👤", layout="wide", m
 # Apply custom theme
 apply_custom_theme()
 
-# Completely remove the default Streamlit sidebar
-from streamlit_config import remove_streamlit_sidebar
-remove_streamlit_sidebar()
+# Use the default Streamlit navigation
+from streamlit_config import use_default_navigation
+use_default_navigation()
 
-# Render top navigation
-from top_navigation import render_top_navigation
-render_top_navigation()
+# Display user info in sidebar
+user_info = get_current_user() or {}
+
+# Add user info to sidebar
+with st.sidebar:
+    st.markdown(f"""
+    <div style="padding: 10px; margin-bottom: 20px; border-bottom: 1px solid #e6e6e6;">
+        <p style="margin-bottom: 5px;"><strong>Logged in as:</strong></p>
+        <p style="margin-bottom: 2px;"><b>{user_info.get('full_name', 'User')}</b></p>
+        <p style="font-size: 0.9em; color: #666;">Role: {user_info.get('role', 'Analyst').capitalize()}</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 @require_auth
 def main():

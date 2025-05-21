@@ -53,6 +53,20 @@ apply_custom_theme()
 from streamlit_config import use_default_navigation
 use_default_navigation()
 
+# Display user info in sidebar
+from auth import get_current_user
+user_info = get_current_user() or {}
+
+# Add user info to sidebar
+with st.sidebar:
+    st.markdown(f"""
+    <div style="padding: 10px; margin-bottom: 20px; border-bottom: 1px solid #e6e6e6;">
+        <p style="margin-bottom: 5px;"><strong>Logged in as:</strong></p>
+        <p style="margin-bottom: 2px;"><b>{user_info.get('full_name', 'User')}</b></p>
+        <p style="font-size: 0.9em; color: #666;">Role: {user_info.get('role', 'Analyst').capitalize()}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
 # Database schema
 SCHEMA = {
     FRAUD_TABLE: f"""
