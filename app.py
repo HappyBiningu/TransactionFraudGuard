@@ -1150,14 +1150,14 @@ if is_authenticated:
             query = """
             SELECT 
                 CASE
-                    WHEN type = 'daily' THEN 'Daily Limit'
-                    WHEN type = 'weekly' THEN 'Weekly Limit'
-                    WHEN type = 'monthly' THEN 'Monthly Limit'
-                    ELSE type
+                    WHEN period_type = 'daily' THEN 'Daily Limit'
+                    WHEN period_type = 'weekly' THEN 'Weekly Limit'
+                    WHEN period_type = 'monthly' THEN 'Monthly Limit'
+                    ELSE period_type
                 END as violation_type,
                 COUNT(*) as violation_count
             FROM violations
-            GROUP BY type
+            GROUP BY period_type
             ORDER BY violation_count DESC
             """
             
