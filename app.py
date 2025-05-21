@@ -32,55 +32,11 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
     except:
         return None, None
 
-# Page config with no sidebar
+# Page config
 st.set_page_config(
     page_title="Financial Intelligence Platform", 
-    layout="centered"
+    layout="wide"
 )
-
-# Include custom CSS to hide all navigation elements
-with open('.streamlit/custom.css') as f:
-    custom_css = f.read()
-    
-st.markdown(f"<style>{custom_css}</style>", unsafe_allow_html=True)
-
-# Additional direct CSS to target that specific arrow button
-direct_css = """
-<style>
-    /* Target the specific arrow button */
-    button[aria-label="Back"],
-    .stNavigationContainer,
-    .st-emotion-cache-5rimss,
-    .st-emotion-cache-dhfzlv,
-    .st-emotion-cache-1okhd5r,
-    .st-emotion-cache-19rxjzo,
-    [data-testid="baseButton-secondary"],
-    div.stButton > button:first-child {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        min-width: 0 !important;
-    }
-    
-    /* Fix main layout */
-    .main .block-container {
-        margin-left: auto !important;
-        margin-right: auto !important;
-        padding-left: 20px !important;
-        padding-right: 20px !important;
-    }
-    
-    /* Fix the webview label */
-    div[data-testid="StyledFullScreenFrame"] > div:first-child {
-        display: none !important;
-    }
-</style>
-"""
-st.markdown(direct_css, unsafe_allow_html=True)
 
 # Check if user is logged in
 is_authenticated = login_page()

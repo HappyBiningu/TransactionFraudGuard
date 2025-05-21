@@ -134,109 +134,32 @@ def login_page():
     """Render the login page"""
     init_auth_database()
     
-    # Direct targeting of the arrow button by injecting a custom JavaScript function
-    hide_arrow_js = """
-    <script>
-    // Function to remove elements
-    function removeElements() {
-        // Find all buttons using various selectors
-        const arrows = document.querySelectorAll('button[data-testid="baseButton-secondary"], .stNavigationContainer button, div > button:has(svg), button.st-emotion-cache-5rimss');
-        arrows.forEach(arrow => {
-            if (arrow) {
-                arrow.style.display = 'none';
-                arrow.remove();
-            }
-        });
-        
-        // Remove any sidebar elements
-        const sidebar = document.querySelector('section[data-testid="stSidebar"]');
-        if (sidebar) sidebar.style.display = 'none';
-        
-        // Fix main content margin
-        const main = document.querySelector('.main .block-container');
-        if (main) {
-            main.style.marginLeft = 'auto';
-            main.style.marginRight = 'auto';
-        }
-    }
+    # Create a clean login page
+    st.title("Financial Intelligence Platform")
+    st.markdown("### Secure login to access financial monitoring tools")
     
-    // Run immediately and also after a brief delay to ensure DOM is fully loaded
-    removeElements();
-    setTimeout(removeElements, 500);
-    setTimeout(removeElements, 1000);
-    </script>
-    """
-    
-    # Additional comprehensive CSS targeting all possible elements
+    # Simpler CSS that only targets navigation elements but keeps content visible
     hide_sidebar_style = """
         <style>
+            /* Hide navigation */
             [data-testid="collapsedControl"] {display: none !important;}
-            section[data-testid="stSidebar"] {display: none !important; width: 0 !important;}
+            section[data-testid="stSidebar"] {display: none !important;}
             #MainMenu {visibility: hidden !important;}
             footer {visibility: hidden !important;}
             header {visibility: hidden !important;}
+            div[data-testid="stSidebarNav"] {display: none !important;}
+            button[data-testid="baseButton-secondary"] {display: none !important;}
+            .stNavigationContainer {display: none !important;}
+            
+            /* Keep main content visible and centered */
             .block-container {
                 padding-top: 2rem;
                 max-width: 800px;
-                margin: 0 auto !important;
+                margin: 0 auto;
             }
-            div[data-testid="stSidebarNav"] {display: none !important;}
-            div[data-testid="baseButton-headerNoPadding"] {display: none !important;}
-            button[kind="header"] {display: none !important;}
-            ul[data-testid="stSidebarNavItems"] {display: none !important;}
-            
-            /* Target all navigation buttons including the back arrow */
-            button[data-testid="baseButton-secondary"],
-            button.st-emotion-cache-5rimss,
-            button.e1nzilvr5,
-            button[aria-label="Back"],
-            .stNavigationContainer,
-            .st-emotion-cache-dhfzlv,
-            .st-emotion-cache-1okhd5r,
-            .st-emotion-cache-19rxjzo,
-            div.stButton > button:first-child,
-            button:has(svg),
-            div > button:has(svg) {
-                display: none !important;
-                visibility: hidden !important;
-                opacity: 0 !important;
-                width: 0 !important;
-                height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                min-width: 0 !important;
-                position: absolute !important;
-                left: -9999px !important;
-            }
-            
-            /* Additional specific selectors */
-            a[data-testid="stSidebarNavLink"] {display: none !important;}
-            div[data-testid="collapsedControl-container"] {display: none !important;}
-            nav[data-testid="stSidebar"] {display: none !important;}
-            div.embeddedapp-wrapper {margin-left: 0 !important;}
-            div.viewerBadge {display: none !important;}
-            div.stApp > header {display: none !important;}
-            div.stApp > div[data-testid="stDecoration"] {display: none !important;}
-            button.step-up, button.step-down {display: none !important;}
-            section.main > div.block-container {padding-left: 20px !important; padding-right: 20px !important;}
-            
-            /* Force main content to take full width */
-            .main .block-container {
-                margin-left: auto !important;
-                margin-right: auto !important;
-            }
-            
-            /* Hide webview label */
-            div[data-testid="StyledFullScreenFrame"] > div:first-child {display: none !important;}
-            
-            /* Hide all SVG elements that could be icons */
-            svg {display: none !important;}
         </style>
     """
-    
-    # Apply both CSS and JS solutions
     st.markdown(hide_sidebar_style, unsafe_allow_html=True)
-    st.markdown(hide_arrow_js, unsafe_allow_html=True)
     
     if "user_info" not in st.session_state:
         st.session_state.user_info = None
