@@ -76,8 +76,12 @@ def calculate_kpi_trend(db_file, query_current, query_previous):
     except Exception as e:
         return 0, 0
 
-# Page layout
+# Page layout with hidden sidebar
 st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide", menu_items=None)
+
+# Hide the default Streamlit sidebar
+from streamlit_config import hide_streamlit_sidebar
+hide_streamlit_sidebar()
 
 # Function to get system users data
 def get_system_users():
