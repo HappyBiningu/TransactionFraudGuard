@@ -140,14 +140,18 @@ def login_page():
     if "show_signup" not in st.session_state:
         st.session_state.show_signup = False
     
+    # Sidebar user panel
+    with st.sidebar:
+        if st.session_state.user_info:
+            st.sidebar.markdown("### 👤 User Profile")
+            st.sidebar.info(f"**Logged in as:**  \n{st.session_state.user_info['full_name']}  \n**Role:** {st.session_state.user_info['role']}")
+            
+            if st.sidebar.button("Logout", key="sidebar_logout"):
+                st.session_state.user_info = None
+                st.rerun()
+    
     if st.session_state.user_info:
         # Already logged in
-        st.success(f"Logged in as {st.session_state.user_info['full_name']} ({st.session_state.user_info['role']})")
-        
-        if st.button("Logout"):
-            st.session_state.user_info = None
-            st.rerun()
-        
         return True
     
     st.title("Financial Intelligence Platform")

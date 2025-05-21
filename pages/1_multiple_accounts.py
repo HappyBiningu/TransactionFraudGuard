@@ -20,9 +20,6 @@ st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", la
 # Apply authentication
 @require_auth
 def main():
-    user_info = get_current_user()
-    st.sidebar.success(f"Logged in as: {user_info['full_name']}")
-    
     st.title("🔍 Multiple Accounts Analysis")
     
     # Initialize database

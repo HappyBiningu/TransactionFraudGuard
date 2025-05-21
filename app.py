@@ -3,6 +3,7 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 from auth import login_page, require_auth
+from sidebar import render_sidebar
 
 # Database files
 DBS = {
@@ -34,6 +35,9 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
 
 # Page layout
 st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide")
+
+# Render sidebar navigation
+render_sidebar()
 
 # Check if user is logged in
 is_authenticated = login_page()
@@ -94,17 +98,35 @@ if is_authenticated:
         s, e = fetch_date_range(DBS["Fraud Detection"], "fraud_detection_results", "timestamp")
         st.write(f"{s or 'N/A'} ➡️ {e or 'N/A'}")
     
-    # Navigation
+    # Feature highlights section
     st.markdown("---")
-    st.header("📁 Open Modules")
+    st.header("✨ Key Features")
     
-    col_mod1, col_mod2, col_mod3 = st.columns(3)
-    with col_mod1:
-        st.page_link("pages/1_multiple_accounts.py", label="🔍 Multiple Accounts Analysis", icon="🔗")
-    with col_mod2:
-        st.page_link("pages/2_limit_monitoring.py", label="🚦 Limit Monitoring", icon="🔗")
-    with col_mod3:
-        st.page_link("pages/3_fraud_detection.py", label="🛡️ Fraud Detection System", icon="🔗")
+    feature_cols = st.columns(3)
+    
+    with feature_cols[0]:
+        st.markdown("""
+        ### 🔎 Multiple Account Detection
+        - Identify individuals with accounts across multiple banks
+        - Flag high-risk patterns and unusual activity
+        - Monitor transaction flows between accounts
+        """)
+    
+    with feature_cols[1]:
+        st.markdown("""
+        ### 🚨 Transaction Limit Monitoring
+        - Track daily, weekly, and monthly transaction limits
+        - Receive instant alerts on violations
+        - Customize thresholds by account type
+        """)
+    
+    with feature_cols[2]:
+        st.markdown("""
+        ### 🤖 AI-Powered Fraud Detection
+        - Machine learning fraud prediction
+        - Risk scoring for transactions
+        - Detailed analysis and reporting
+        """)
     
     st.markdown("---")
-    st.info("This dashboard provides a snapshot of all transaction monitoring systems. Visit each module for full analysis, management, and exports.")
+    st.info("This dashboard provides a snapshot of all transaction monitoring systems. Select any module from the sidebar for detailed analysis and management.")
