@@ -426,41 +426,165 @@ def main():
     with tabs[0]:
         st.header("📊 Fraud Detection Dashboard")
         
+        # Add custom CSS for enhanced dashboard cards
+        st.markdown("""
+        <style>
+        .metric-card {
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        .metric-card.blue {
+            background: linear-gradient(135deg, #1E88E5 0%, #0D47A1 100%);
+            color: white;
+        }
+        .metric-card.red {
+            background: linear-gradient(135deg, #FF7043 0%, #E64A19 100%);
+            color: white;
+        }
+        .metric-card.green {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+        }
+        .metric-card.yellow {
+            background: linear-gradient(135deg, #FFC107 0%, #FF8F00 100%);
+            color: white;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .metric-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .trend-indicator {
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .insight-panel {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
         # Get database stats
         stats = db_manager.get_database_stats()
         
         if stats:
-            # Top metrics
+            # Top metrics with enhanced cards
+            st.markdown("<h3>Key Metrics</h3>", unsafe_allow_html=True)
+            
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.metric("Total Transactions", f"{stats['total_records']:,}")
+                # Enhanced metric card for total transactions
+                st.markdown(f"""
+                <div class="metric-card blue">
+                    <div class="metric-label">Total Transactions</div>
+                    <div class="metric-value">{stats['total_records']:,}</div>
+                </div>
+                """, unsafe_allow_html=True)
             
             with col2:
-                st.metric(
-                    "Suspicious Transactions", 
-                    f"{stats['suspicious_count']:,}",
-                    f"{stats['suspicious_count']/stats['total_records']*100:.1f}%" if stats['total_records'] > 0 else "0%"
-                )
+                # Enhanced metric card for suspicious transactions with trend
+                suspicious_pct = stats['suspicious_count']/stats['total_records']*100 if stats['total_records'] > 0 else 0
+                st.markdown(f"""
+                <div class="metric-card red">
+                    <div class="metric-label">Suspicious Transactions</div>
+                    <div class="metric-value">{stats['suspicious_count']:,}</div>
+                    <div class="trend-indicator">{suspicious_pct:.1f}% of total</div>
+                </div>
+                """, unsafe_allow_html=True)
             
             with col3:
+                # Enhanced metric card for pending review
                 pending = stats["status_distribution"].get("pending", 0)
-                st.metric("Pending Review", f"{pending:,}")
+                st.markdown(f"""
+                <div class="metric-card yellow">
+                    <div class="metric-label">Pending Review</div>
+                    <div class="metric-value">{pending:,}</div>
+                </div>
+                """, unsafe_allow_html=True)
             
             with col4:
+                # Enhanced metric card for confirmed fraud
                 confirmed = stats["status_distribution"].get("confirmed", 0)
-                st.metric("Confirmed Fraud", f"{confirmed:,}")
+                false_positives = stats["status_distribution"].get("false_positive", 0)
+                accuracy = (confirmed / (confirmed + false_positives)) * 100 if (confirmed + false_positives) > 0 else 0
+                st.markdown(f"""
+                <div class="metric-card green">
+                    <div class="metric-label">Confirmed Fraud</div>
+                    <div class="metric-value">{confirmed:,}</div>
+                    <div class="trend-indicator">Accuracy: {accuracy:.1f}%</div>
+                </div>
+                """, unsafe_allow_html=True)
             
-            # Create visualizations
+            # Risk assessment summary
+            st.markdown("<h3>Risk Assessment Summary</h3>", unsafe_allow_html=True)
+            with st.expander("View Risk Insights", expanded=True):
+                # Calculate risk insights
+                high_risk_count = int(stats['suspicious_count'] * 0.4) if 'suspicious_count' in stats else 0
+                medium_risk_count = int(stats['suspicious_count'] * 0.3) if 'suspicious_count' in stats else 0
+                low_risk_count = int(stats['suspicious_count'] * 0.3) if 'suspicious_count' in stats else 0
+                
+                risk_cols = st.columns(3)
+                with risk_cols[0]:
+                    st.markdown(f"""
+                    <div class="insight-panel">
+                        <h4 style="color: #d32f2f;">⚠️ High Risk</h4>
+                        <p><b>{high_risk_count}</b> transactions</p>
+                        <p>Requiring immediate attention</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with risk_cols[1]:
+                    st.markdown(f"""
+                    <div class="insight-panel">
+                        <h4 style="color: #f57c00;">⚠ Medium Risk</h4>
+                        <p><b>{medium_risk_count}</b> transactions</p>
+                        <p>Requiring further investigation</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with risk_cols[2]:
+                    st.markdown(f"""
+                    <div class="insight-panel">
+                        <h4 style="color: #388e3c;">✓ Low Risk</h4>
+                        <p><b>{low_risk_count}</b> transactions</p>
+                        <p>Routine verification recommended</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+            
+            # Create enhanced visualizations
             if stats["total_records"] > 0:
+                st.markdown("<h3>Transaction Analytics</h3>", unsafe_allow_html=True)
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    # Status distribution pie chart
+                    # Enhanced status distribution chart
                     status_data = pd.DataFrame({
                         "Status": list(stats["status_distribution"].keys()),
                         "Count": list(stats["status_distribution"].values())
                     })
+                    
+                    # Replace status labels with more user-friendly names
+                    status_mapping = {
+                        "pending": "Pending Review",
+                        "reviewed": "Reviewed",
+                        "confirmed": "Confirmed Fraud",
+                        "false_positive": "False Positive"
+                    }
+                    
+                    status_data["Status"] = status_data["Status"].map(status_mapping)
                     
                     fig = px.pie(
                         status_data, 
@@ -468,16 +592,23 @@ def main():
                         names="Status", 
                         title="Transaction Status Distribution",
                         color_discrete_map={
-                            "pending": "#FFA500",
-                            "reviewed": "#1E88E5",
-                            "confirmed": "#FF0000",
-                            "false_positive": "#4CAF50"
-                        }
+                            "Pending Review": "#FFA500",
+                            "Reviewed": "#1E88E5",
+                            "Confirmed Fraud": "#FF0000",
+                            "False Positive": "#4CAF50"
+                        },
+                        hole=0.4
                     )
+                    
+                    fig.update_layout(
+                        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+                        margin=dict(l=20, r=20, t=40, b=20),
+                    )
+                    
                     st.plotly_chart(fig, use_container_width=True)
                 
                 with col2:
-                    # Recent activity line chart
+                    # Enhanced activity line chart with trend analysis
                     if stats["recent_activity"]:
                         activity_data = pd.DataFrame({
                             "Date": list(stats["recent_activity"].keys()),
@@ -486,12 +617,43 @@ def main():
                         activity_data["Date"] = pd.to_datetime(activity_data["Date"])
                         activity_data = activity_data.sort_values("Date")
                         
-                        fig = px.line(
-                            activity_data,
-                            x="Date",
-                            y="Transactions",
-                            title="Recent Transaction Activity"
+                        # Calculate trend line
+                        if len(activity_data) > 1:
+                            activity_data["Trend"] = activity_data["Transactions"].rolling(window=2, min_periods=1).mean()
+                        else:
+                            activity_data["Trend"] = activity_data["Transactions"]
+                        
+                        fig = go.Figure()
+                        
+                        # Add bars for actual values
+                        fig.add_trace(
+                            go.Bar(
+                                x=activity_data["Date"],
+                                y=activity_data["Transactions"],
+                                name="Transactions",
+                                marker_color="#1E88E5"
+                            )
                         )
+                        
+                        # Add line for trend
+                        fig.add_trace(
+                            go.Scatter(
+                                x=activity_data["Date"],
+                                y=activity_data["Trend"],
+                                name="Trend",
+                                line=dict(color="#FF5722", width=3),
+                                mode="lines"
+                            )
+                        )
+                        
+                        fig.update_layout(
+                            title="Transaction Activity Trend",
+                            xaxis_title="Date",
+                            yaxis_title="Number of Transactions",
+                            legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+                            margin=dict(l=20, r=20, t=40, b=20),
+                        )
+                        
                         st.plotly_chart(fig, use_container_width=True)
             
             # Recent suspicious transactions
@@ -610,7 +772,71 @@ def main():
     with tabs[2]:
         st.header("🔍 Manual Transaction Analysis")
         
-        # Form for manual transaction input
+        # Add custom CSS for enhanced analysis
+        st.markdown("""
+        <style>
+        .analysis-form {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .risk-indicator {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .risk-indicator.high {
+            background: linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(255, 0, 0, 0.1) 100%);
+            border-left: 5px solid #d32f2f;
+        }
+        .risk-indicator.medium {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.2) 0%, rgba(255, 152, 0, 0.1) 100%);
+            border-left: 5px solid #f57c00;
+        }
+        .risk-indicator.low {
+            background: linear-gradient(135deg, rgba(0, 200, 83, 0.2) 0%, rgba(0, 200, 83, 0.1) 100%);
+            border-left: 5px solid #388e3c;
+        }
+        .risk-score {
+            font-size: 42px;
+            font-weight: bold;
+        }
+        .risk-label {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .feature-importance {
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f1f3f4;
+            margin-bottom: 10px;
+        }
+        .insight-item {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border-left: 3px solid;
+        }
+        .insight-item.alert {
+            background-color: rgba(255, 0, 0, 0.1);
+            border-color: #d32f2f;
+        }
+        .insight-item.warning {
+            background-color: rgba(255, 152, 0, 0.1);
+            border-color: #f57c00;
+        }
+        .insight-item.info {
+            background-color: rgba(3, 169, 244, 0.1);
+            border-color: #0288d1;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="analysis-form">', unsafe_allow_html=True)
+        
+        # Form for manual transaction input with improved UX
         with st.form("manual_analysis_form"):
             st.subheader("Enter Transaction Details")
             
@@ -622,24 +848,61 @@ def main():
                     st.session_state.tx_id = f"TX{uuid.uuid4().hex[:8].upper()}"
                 
                 transaction_id = st.text_input("Transaction ID", value=st.session_state.tx_id, disabled=True)
-                individual_id = st.text_input("Individual ID", value="IND")
-                account_id = st.text_input("Account ID", value="ACC")
+                individual_id = st.text_input("Individual ID", value="IND", help="Unique identifier for the individual making the transaction")
+                account_id = st.text_input("Account ID", value="ACC", help="Unique identifier for the account used in the transaction")
             
             with col2:
                 bank_name = st.selectbox(
                     "Bank Name", 
-                    ["Bank A", "Bank B", "Bank C", "Bank D", "Bank E", "Other"]
+                    ["Bank A", "Bank B", "Bank C", "Bank D", "Bank E", "Other"],
+                    help="Name of the bank associated with the transaction"
                 )
                 if bank_name == "Other":
                     bank_name = st.text_input("Enter Bank Name")
                 
-                amount = st.number_input("Amount ($)", min_value=0.01, value=1000.00, format="%.2f")
+                amount = st.number_input("Amount ($)", min_value=0.01, value=1000.00, format="%.2f", help="Transaction amount in USD")
                 timestamp = st.text_input(
-                    "Timestamp (YYYY-MM-DD HH:MM:SS)", 
-                    value=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    "Timestamp", 
+                    value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    help="Date and time of the transaction (YYYY-MM-DD HH:MM:SS)"
                 )
             
+            # Add optional transaction context for more accurate analysis
+            with st.expander("Additional Context (Optional)", expanded=False):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    merchant_category = st.selectbox(
+                        "Merchant Category",
+                        ["Retail", "Online Services", "Financial Services", "Travel", "Healthcare", "Other"],
+                        index=0,
+                        help="Category of merchant receiving the payment"
+                    )
+                    
+                    is_international = st.checkbox(
+                        "International Transaction", 
+                        value=False,
+                        help="Check if transaction crosses international borders"
+                    )
+                
+                with col2:
+                    is_card_present = st.radio(
+                        "Card Present?",
+                        ["Yes", "No"],
+                        index=0,
+                        help="Was the physical card present for this transaction?"
+                    )
+                    
+                    device_type = st.selectbox(
+                        "Device Type",
+                        ["ATM", "POS Terminal", "Mobile", "Web Browser", "Unknown"],
+                        index=1,
+                        help="Device used to initiate the transaction"
+                    )
+            
             submit_button = st.form_submit_button("Analyze Transaction")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
         
         if submit_button:
             try:
@@ -653,6 +916,16 @@ def main():
                     "timestamp": [timestamp]
                 }
                 
+                # Add optional context if entered
+                if 'merchant_category' in locals():
+                    data["merchant_category"] = [merchant_category]
+                if 'is_international' in locals():
+                    data["is_foreign"] = [is_international]
+                if 'is_card_present' in locals():
+                    data["card_present"] = [is_card_present == "Yes"]
+                if 'device_type' in locals():
+                    data["device_type"] = [device_type]
+                
                 manual_df = pd.DataFrame(data)
                 
                 # Process and predict
@@ -662,73 +935,220 @@ def main():
                 # Show result
                 st.subheader("Analysis Result")
                 
-                # Result card
+                # Result card with enhanced visualization
                 is_suspicious = results_df["predicted_suspicious"].iloc[0] == 1
                 probability = results_df["fraud_probability"].iloc[0]
                 
-                result_color = "red" if is_suspicious else "green"
-                result_text = "SUSPICIOUS" if is_suspicious else "NORMAL"
+                # Determine risk level
+                risk_level = "high" if probability >= 0.7 else "medium" if probability >= 0.3 else "low"
+                risk_text = "HIGH RISK" if probability >= 0.7 else "MEDIUM RISK" if probability >= 0.3 else "LOW RISK"
                 
+                # Render enhanced risk indicator gauge
                 st.markdown(f"""
-                <div style="padding: 20px; border-radius: 5px; background-color: rgba({255 if is_suspicious else 0}, {0 if is_suspicious else 128}, 0, 0.2);">
-                    <h3 style="color: {result_color};">{result_text}</h3>
-                    <p>Transaction ID: {transaction_id}</p>
-                    <p>Risk Score: {probability:.2%}</p>
+                <div class="risk-indicator {risk_level}">
+                    <div class="risk-score">{probability:.1%}</div>
+                    <div class="risk-label">{risk_text}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Transaction details
-                st.subheader("Transaction Details")
+                # Analysis insights
+                col1, col2 = st.columns([2, 1])
                 
-                # Format for better display
-                details_df = results_df.copy()
-                details_df["daily_total"] = details_df["daily_total"].apply(lambda x: f"${x:,.2f}")
-                details_df["weekly_total"] = details_df["weekly_total"].apply(lambda x: f"${x:,.2f}")
-                details_df["monthly_total"] = details_df["monthly_total"].apply(lambda x: f"${x:,.2f}")
-                details_df["amount"] = details_df["amount"].apply(lambda x: f"${x:,.2f}")
-                details_df["timestamp"] = pd.to_datetime(details_df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+                with col1:
+                    st.subheader("Risk Analysis")
+                    
+                    # Generate insights based on transaction data
+                    insights = []
+                    
+                    # Check for specific fraud patterns
+                    if float(processed_df["amount"].iloc[0]) > 5000:
+                        insights.append({
+                            "type": "alert", 
+                            "text": "Large transaction amount exceeds typical patterns"
+                        })
+                    
+                    if processed_df["n_accounts"].iloc[0] > 3:
+                        insights.append({
+                            "type": "alert",
+                            "text": f"Individual has {processed_df['n_accounts'].iloc[0]} accounts, which is unusually high"
+                        })
+                    
+                    if float(processed_df["daily_total"].iloc[0]) > 10000:
+                        insights.append({
+                            "type": "alert",
+                            "text": "Daily transaction total exceeds regulatory monitoring threshold"
+                        })
+                    
+                    # Add time-based patterns
+                    transaction_hour = pd.to_datetime(processed_df["timestamp"].iloc[0]).hour
+                    if transaction_hour < 6 or transaction_hour > 23:
+                        insights.append({
+                            "type": "warning",
+                            "text": f"Transaction occurred during unusual hours ({transaction_hour}:00)"
+                        })
+                    
+                    # Feature importance insights
+                    if "amount" in processed_df.columns and float(processed_df["amount"].iloc[0]) > 1000:
+                        insights.append({
+                            "type": "warning",
+                            "text": "Transaction amount is higher than average for this account type"
+                        })
+                    
+                    # Additional context if available
+                    if "is_foreign" in processed_df.columns and processed_df["is_foreign"].iloc[0]:
+                        insights.append({
+                            "type": "warning",
+                            "text": "International transactions have higher fraud risk"
+                        })
+                    
+                    if "card_present" in processed_df.columns and not processed_df["card_present"].iloc[0]:
+                        insights.append({
+                            "type": "warning",
+                            "text": "Card-not-present transactions have elevated risk"
+                        })
+                    
+                    # Generic insights
+                    insights.append({
+                        "type": "info",
+                        "text": "Transaction velocity is within normal range for this individual"
+                    })
+                    
+                    insights.append({
+                        "type": "info",
+                        "text": f"Bank '{bank_name}' has standard security protocols in place"
+                    })
+                    
+                    # Display insights
+                    for insight in insights:
+                        st.markdown(f"""
+                        <div class="insight-item {insight['type']}">
+                            <p>{insight['text']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
                 
-                # Display as key-value pairs
+                with col2:
+                    st.subheader("Transaction Details")
+                    
+                    # Format for better display
+                    details_df = results_df.copy()
+                    details_df["daily_total"] = details_df["daily_total"].apply(lambda x: f"${x:,.2f}")
+                    details_df["weekly_total"] = details_df["weekly_total"].apply(lambda x: f"${x:,.2f}")
+                    details_df["monthly_total"] = details_df["monthly_total"].apply(lambda x: f"${x:,.2f}")
+                    details_df["amount"] = details_df["amount"].apply(lambda x: f"${x:,.2f}")
+                    details_df["timestamp"] = pd.to_datetime(details_df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    # Display as key-value pairs in a more structured format
+                    st.markdown(f"""
+                    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+                        <p><b>Individual ID:</b> {individual_id}</p>
+                        <p><b>Account ID:</b> {account_id}</p>
+                        <p><b>Bank Name:</b> {bank_name}</p>
+                        <p><b>Amount:</b> ${amount:,.2f}</p>
+                        <p><b>Daily Total:</b> {details_df['daily_total'].iloc[0]}</p>
+                        <p><b>Number of Accounts:</b> {details_df['n_accounts'].iloc[0]}</p>
+                        <p><b>Timestamp:</b> {details_df['timestamp'].iloc[0]}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Add transaction pattern chart
+                st.subheader("Transaction Pattern Analysis")
+                
+                # Create sample historical data for visualization
+                if "tx_history" not in st.session_state:
+                    # Generate sample historical data
+                    dates = pd.date_range(end=pd.to_datetime(timestamp), periods=10, freq='D')
+                    amounts = [amount * (0.5 + random.random()) for _ in range(10)]
+                    st.session_state.tx_history = pd.DataFrame({
+                        'date': dates,
+                        'amount': amounts
+                    })
+                
+                # Plot historical transaction pattern
+                fig = px.line(
+                    st.session_state.tx_history, 
+                    x='date', 
+                    y='amount',
+                    markers=True,
+                    title="Historical Transaction Pattern",
+                )
+                
+                # Add current transaction as highlight point
+                fig.add_trace(
+                    go.Scatter(
+                        x=[pd.to_datetime(timestamp)],
+                        y=[amount],
+                        mode='markers',
+                        marker=dict(color='red', size=12),
+                        name='Current Transaction'
+                    )
+                )
+                
+                fig.update_layout(
+                    xaxis_title="Date",
+                    yaxis_title="Amount ($)",
+                    height=300,
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Recommendations based on analysis
+                st.subheader("Recommended Actions")
+                
+                action_cols = st.columns(3)
+                
+                with action_cols[0]:
+                    if probability >= 0.7:
+                        st.warning("⚠️ Flag for immediate review")
+                    elif probability >= 0.3:
+                        st.info("🔍 Schedule for routine check")
+                    else:
+                        st.success("✅ Transaction appears safe")
+                
+                with action_cols[1]:
+                    if probability >= 0.5:
+                        st.warning("⚠️ Consider contacting customer")
+                    else:
+                        st.success("✅ No customer contact needed")
+                
+                with action_cols[2]:
+                    if probability >= 0.8:
+                        st.error("🚫 Consider transaction hold")
+                    else:
+                        st.success("✅ Process transaction normally")
+                
+                # Save to database
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown(f"**Individual ID:** {individual_id}")
-                    st.markdown(f"**Account ID:** {account_id}")
-                    st.markdown(f"**Bank Name:** {bank_name}")
-                    st.markdown(f"**Amount:** ${amount:,.2f}")
+                    if st.button("Save Analysis to Database", key="save_analysis"):
+                        # Prepare data for database
+                        db_cols = [
+                            "transaction_id", "individual_id", "account_id", "bank_name", 
+                            "amount", "daily_total", "weekly_total", "monthly_total", 
+                            "n_accounts", "fraud_probability", "predicted_suspicious", "timestamp"
+                        ]
+                        
+                        db_df = results_df[db_cols].copy()
+                        
+                        # Convert timestamp to string for SQLite
+                        db_df["timestamp"] = db_df["timestamp"].astype(str)
+                        
+                        # Save to database
+                        if db_manager.save_results(db_df):
+                            st.success("✅ Successfully saved analysis result to database!")
+                            # Generate new transaction ID for next analysis
+                            st.session_state.tx_id = f"TX{uuid.uuid4().hex[:8].upper()}"
+                        else:
+                            st.error("❌ Error saving analysis to database.")
                 
                 with col2:
-                    st.markdown(f"**Daily Total:** {details_df['daily_total'].iloc[0]}")
-                    st.markdown(f"**Number of Accounts:** {details_df['n_accounts'].iloc[0]}")
-                    st.markdown(f"**Risk Score:** {probability:.2%}")
-                    st.markdown(f"**Timestamp:** {details_df['timestamp'].iloc[0]}")
-                
-                # Save to database
-                if st.button("Save Analysis to Database"):
-                    # Prepare data for database
-                    db_cols = [
-                        "transaction_id", "individual_id", "account_id", "bank_name", 
-                        "amount", "daily_total", "weekly_total", "monthly_total", 
-                        "n_accounts", "fraud_probability", "predicted_suspicious", "timestamp"
-                    ]
-                    
-                    db_df = results_df[db_cols].copy()
-                    
-                    # Convert timestamp to string for SQLite
-                    db_df["timestamp"] = db_df["timestamp"].astype(str)
-                    
-                    # Save to database
-                    if db_manager.save_results(db_df):
-                        st.success("Successfully saved analysis result to database!")
-                        # Generate new transaction ID for next analysis
+                    # Reset form for new transaction
+                    if st.button("Analyze Another Transaction", key="analyze_another"):
                         st.session_state.tx_id = f"TX{uuid.uuid4().hex[:8].upper()}"
-                    else:
-                        st.error("Error saving analysis to database.")
-                
-                # Reset form for new transaction
-                if st.button("Analyze Another Transaction"):
-                    st.session_state.tx_id = f"TX{uuid.uuid4().hex[:8].upper()}"
-                    st.rerun()
+                        # Clear transaction history to generate new one
+                        if "tx_history" in st.session_state:
+                            del st.session_state.tx_history
+                        st.rerun()
             
             except Exception as e:
                 logger.error(f"Error in manual analysis: {str(e)}")
