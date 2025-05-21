@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 from datetime import datetime, timedelta
 import sqlite3
@@ -988,10 +989,15 @@ def main():
                             with risk_tabs[0]:
                                 suspicious_df = results_df[results_df["predicted_suspicious"] == 1].copy()
                                 
-                                # Format for display
-                                suspicious_df["amount"] = suspicious_df["amount"].apply(lambda x: f"${x:,.2f}")
-                                suspicious_df["fraud_probability"] = suspicious_df["fraud_probability"].apply(lambda x: f"{x:.1%}")
-                                suspicious_df["timestamp"] = pd.to_datetime(suspicious_df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+                                # Format for display - with validation for non-finite values
+                                suspicious_df["amount"] = suspicious_df["amount"].apply(
+                                    lambda x: f"${x:,.2f}" if pd.notna(x) and np.isfinite(x) else "N/A"
+                                )
+                                suspicious_df["fraud_probability"] = suspicious_df["fraud_probability"].apply(
+                                    lambda x: f"{x:.1%}" if pd.notna(x) and np.isfinite(x) else "N/A"
+                                )
+                                suspicious_df["timestamp"] = pd.to_datetime(suspicious_df["timestamp"], errors='coerce')\
+                                    .apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S") if pd.notna(x) else "N/A")
                                 
                                 # Select columns for display
                                 display_cols = [
@@ -1018,10 +1024,15 @@ def main():
                                 high_risk_df = results_df[results_df["fraud_probability"] >= 0.7].copy()
                                 
                                 if not high_risk_df.empty:
-                                    # Format for display
-                                    high_risk_df["amount"] = high_risk_df["amount"].apply(lambda x: f"${x:,.2f}")
-                                    high_risk_df["fraud_probability"] = high_risk_df["fraud_probability"].apply(lambda x: f"{x:.1%}")
-                                    high_risk_df["timestamp"] = pd.to_datetime(high_risk_df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+                                    # Format for display with validation for non-finite values
+                                    high_risk_df["amount"] = high_risk_df["amount"].apply(
+                                        lambda x: f"${x:,.2f}" if pd.notna(x) and np.isfinite(x) else "N/A"
+                                    )
+                                    high_risk_df["fraud_probability"] = high_risk_df["fraud_probability"].apply(
+                                        lambda x: f"{x:.1%}" if pd.notna(x) and np.isfinite(x) else "N/A"
+                                    )
+                                    high_risk_df["timestamp"] = pd.to_datetime(high_risk_df["timestamp"], errors='coerce')\
+                                        .apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S") if pd.notna(x) else "N/A")
                                     
                                     # Select columns for display
                                     display_cols = [
@@ -1042,10 +1053,15 @@ def main():
                                 medium_risk_df = results_df[(results_df["fraud_probability"] >= 0.3) & (results_df["fraud_probability"] < 0.7)].copy()
                                 
                                 if not medium_risk_df.empty:
-                                    # Format for display
-                                    medium_risk_df["amount"] = medium_risk_df["amount"].apply(lambda x: f"${x:,.2f}")
-                                    medium_risk_df["fraud_probability"] = medium_risk_df["fraud_probability"].apply(lambda x: f"{x:.1%}")
-                                    medium_risk_df["timestamp"] = pd.to_datetime(medium_risk_df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+                                    # Format for display with validation for non-finite values
+                                    medium_risk_df["amount"] = medium_risk_df["amount"].apply(
+                                        lambda x: f"${x:,.2f}" if pd.notna(x) and np.isfinite(x) else "N/A"
+                                    )
+                                    medium_risk_df["fraud_probability"] = medium_risk_df["fraud_probability"].apply(
+                                        lambda x: f"{x:.1%}" if pd.notna(x) and np.isfinite(x) else "N/A"
+                                    )
+                                    medium_risk_df["timestamp"] = pd.to_datetime(medium_risk_df["timestamp"], errors='coerce')\
+                                        .apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S") if pd.notna(x) else "N/A")
                                     
                                     # Select columns for display
                                     display_cols = [
