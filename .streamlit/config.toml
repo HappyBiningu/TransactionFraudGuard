@@ -3,16 +3,12 @@ headless = true
 address = "0.0.0.0"
 port = 5000
 
-[theme]
-primaryColor = "#1E88E5"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F5F5F5"
-textColor = "#212121"
-font = "sans serif"
-
 [browser]
-# Disable the default navigation to use our custom one
 gatherUsageStats = false
 
-[ui]
-hideTopBar = true
+[theme]
+primaryColor = "#4a6fe3"
+backgroundColor = "#f0f2f6"
+secondaryBackgroundColor = "#e0e3eb"
+textColor = "#262730"
+font = "sans serif"

@@ -16,7 +16,7 @@ DB_FILE = "transactions.db"
 PAGE_SIZE = 50
 
 # Set page config
-st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", layout="wide", menu_items=None)
 
 # Render sidebar navigation
 render_sidebar()

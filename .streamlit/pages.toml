@@ -1,3 +1,2 @@
-# Completely hide all pages in auto-generated navigation
-[pages]
-hide_pages = ".*"
+# Disable the default Streamlit page navigation
+# This file being present will effectively hide the default navigation

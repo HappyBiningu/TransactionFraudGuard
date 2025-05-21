@@ -34,7 +34,7 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
         return None, None
 
 # Page layout
-st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide")
+st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide", menu_items=None)
 
 # Check if user is logged in
 is_authenticated = login_page()
