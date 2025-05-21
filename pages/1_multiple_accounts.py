@@ -21,9 +21,9 @@ st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", la
 
 # Render sidebar navigation
 render_sidebar()
-    
-    # Apply custom theme
-    apply_custom_theme()
+
+# Apply custom theme
+apply_custom_theme()
 
 # Apply authentication
 @require_auth

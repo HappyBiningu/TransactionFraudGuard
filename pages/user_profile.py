@@ -19,9 +19,9 @@ st.set_page_config(page_title="User Profile", page_icon="👤", layout="wide", m
 
 # Render sidebar navigation
 render_sidebar()
-    
-    # Apply custom theme
-    apply_custom_theme()
+
+# Apply custom theme
+apply_custom_theme()
 
 @require_auth
 def main():
