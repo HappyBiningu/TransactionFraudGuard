@@ -9,6 +9,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from auth import require_auth, get_current_user
 from sidebar import render_sidebar
+from theme_utils import apply_custom_theme
 
 # Constants
 DB_FILE = "fraud_detection.db"
@@ -18,6 +19,9 @@ st.set_page_config(page_title="User Profile", page_icon="👤", layout="wide", m
 
 # Render sidebar navigation
 render_sidebar()
+    
+    # Apply custom theme
+    apply_custom_theme()
 
 @require_auth
 def main():

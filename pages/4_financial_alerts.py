@@ -13,6 +13,7 @@ import io
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from auth import require_auth
 from sidebar import render_sidebar
+from theme_utils import apply_custom_theme
 import enhanced_financial_alerts as efa
 
 # Constants

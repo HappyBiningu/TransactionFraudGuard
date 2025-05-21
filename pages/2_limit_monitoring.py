@@ -13,6 +13,7 @@ import sys
 # Add the root directory to the path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from sidebar import render_sidebar
+from theme_utils import apply_custom_theme
 
 # Configure logging
 logging.basicConfig(
@@ -35,6 +36,9 @@ st.set_page_config(
 
 # Render sidebar navigation
 render_sidebar()
+
+# Apply custom theme
+apply_custom_theme()
 
 # Database functions
 def create_connection():

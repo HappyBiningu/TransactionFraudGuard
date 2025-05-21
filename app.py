@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from auth import login_page, require_auth
 from sidebar import render_sidebar
+from theme_utils import apply_custom_theme
+
 
 # Database files
 DBS = {
