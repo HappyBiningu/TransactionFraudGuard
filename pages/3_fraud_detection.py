@@ -73,7 +73,7 @@ SCHEMA = {
 
 # Type aliases
 DataFrame = pd.DataFrame
-Styler = pd.io.formats.style.Styler
+Styler = pd.DataFrame.style.__class__
 
 class DatabaseManager:
     """Handles all database operations with connection pooling and error handling."""
