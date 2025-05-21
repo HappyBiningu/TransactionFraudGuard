@@ -1349,24 +1349,65 @@ if is_authenticated:
             tx_by_bank_df = fetch_time_series_data(DBS["Accounts Analysis"], query)
             
             if not tx_by_bank_df.empty:
-                # Create bar chart
+                # Create an enhanced bar chart with gradient color
                 fig = px.bar(
                     tx_by_bank_df,
                     x='bank_name',
                     y='transaction_count',
-                    color_discrete_sequence=['#3B82F6'],
+                    color='transaction_count',
+                    color_continuous_scale=[(0, "#60A5FA"), (0.5, "#3B82F6"), (1, "#1D4ED8")],
                     title="Transaction Volume by Bank",
+                    text='transaction_count',  # Show value labels on bars
+                    template="plotly_white"    # Use a cleaner template
                 )
                 
-                # Customize layout
+                # Add a percentage calculation
+                total_transactions = tx_by_bank_df['transaction_count'].sum()
+                tx_by_bank_df['percentage'] = (tx_by_bank_df['transaction_count'] / total_transactions * 100).round(1)
+                
+                # Customize layout with enhanced styling
                 fig.update_layout(
-                    height=350,
-                    xaxis_title="Bank",
-                    yaxis_title="Transaction Count",
+                    height=400,
+                    title={
+                        'text': "<b>Transaction Volume by Bank</b>",
+                        'y':0.95,
+                        'x':0.5,
+                        'xanchor': 'center',
+                        'yanchor': 'top',
+                        'font': {'size': 22, 'color': '#1E40AF'}
+                    },
+                    xaxis_title=None,  # Remove axis titles for cleaner look
+                    yaxis_title=None,
                     plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(showgrid=False),
-                    yaxis=dict(gridcolor='rgba(230,230,230,0.4)'),
-                    margin=dict(l=10, r=10, t=50, b=30),
+                    xaxis=dict(
+                        showgrid=False,
+                        showline=True,
+                        linecolor='rgba(230,230,230,0.8)'
+                    ),
+                    yaxis=dict(
+                        showgrid=True,
+                        gridcolor='rgba(230,230,230,0.4)',
+                        showline=True,
+                        linecolor='rgba(230,230,230,0.8)'
+                    ),
+                    margin=dict(l=10, r=10, t=70, b=30),
+                    coloraxis_showscale=False,  # Hide color scale
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=14,
+                        font_family="Roboto"
+                    )
+                )
+                
+                # Customize hover information to show percentage
+                fig.update_traces(
+                    hovertemplate='<b>%{x}</b><br>Transactions: %{y:,}<br>Percentage: %{customdata:.1f}%',
+                    customdata=tx_by_bank_df['percentage'].values,
+                    texttemplate='%{y:,}',
+                    textposition='outside',
+                    textfont=dict(color='#1E40AF', size=12),
+                    marker_line_width=0,
+                    opacity=0.9
                 )
                 
                 # Display chart in a container
