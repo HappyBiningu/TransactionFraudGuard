@@ -782,7 +782,7 @@ if is_authenticated:
     
     # Create a container for metrics with enhanced appearance
     st.markdown('<div class="metrics-overview">', unsafe_allow_html=True)
-    metrics_cols = st.columns([1,1,1])
+    metrics_cols = st.columns([1,1,1,1])
     
     # --- Transactions.db ---
     with metrics_cols[0]:
@@ -984,6 +984,62 @@ if is_authenticated:
             </div>
         </div>
         """, unsafe_allow_html=True)
+        
+    # --- System Users ---
+    with metrics_cols[3]:
+        # Try to get system users data or use default values
+        try:
+            # Get user stats from the database
+            user_data = get_system_users()
+            total_users = user_data["total"]
+            active_users = user_data["active"]
+            recent_logins = user_data["recent_logins"]
+            
+            # Calculate active rate
+            active_rate = 0
+            if total_users > 0:
+                active_rate = (active_users / total_users) * 100
+                
+            # Determine trend icon and class
+            if active_rate > 75:
+                trend_icon = "👥"
+                trend_class = "trend-up"
+            elif active_rate > 50:
+                trend_icon = "👤"
+                trend_class = "trend-neutral"
+            else:
+                trend_icon = "⚠️"
+                trend_class = "trend-down"
+            
+            st.markdown(f"""
+            <div class="enhanced-metric-card accounts-card">
+                <div class="metric-card-header">
+                    <div class="metric-card-icon">👥</div>
+                    <div class="metric-card-title">System Users</div>
+                </div>
+                <div class="metric-card-body">
+                    <div class="primary-metric">{total_users}</div>
+                    <div class="metric-label">Total Users</div>
+                    <div class="metric-details">
+                        <div class="secondary-metric">
+                            <span class="secondary-value">{active_users}</span>
+                            <span class="secondary-label">Active Users</span>
+                        </div>
+                        <div class="secondary-metric">
+                            <span class="secondary-value">{recent_logins}</span>
+                            <span class="secondary-label">Recent Logins</span>
+                        </div>
+                    </div>
+                    <div class="metric-trend {trend_class}">
+                        <span class="trend-icon">{trend_icon}</span>
+                        <span class="trend-value">{active_rate:.1f}%</span>
+                        <span class="trend-period">active user rate</span>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Error loading system users data")
     
     # Data range overview
     st.markdown('<h2 class="section-header">Activity Timeline</h2>', unsafe_allow_html=True)
