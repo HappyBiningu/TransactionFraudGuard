@@ -198,9 +198,10 @@ def login_page():
         
         with col2:
             st.write("")
-            st.write("Don't have an account?", unsafe_allow_html=True)
-            col_left, col_right = st.columns([3, 1])
-            with col_right:
+            col_text, col_btn = st.columns([2, 1])
+            with col_text:
+                st.write("Don't have an account?")
+            with col_btn:
                 if st.button("Sign Up", use_container_width=True):
                     st.session_state.show_signup = True
                     st.rerun()
@@ -242,9 +243,10 @@ def login_page():
                             st.error(message)
             
             st.write("")
-            st.write("Already have an account?")
-            col_left, col_right = st.columns([3, 1])
-            with col_right:
+            col_text, col_btn = st.columns([2, 1])
+            with col_text:
+                st.write("Already have an account?")
+            with col_btn:
                 if st.button("Log In", use_container_width=True):
                     st.session_state.show_signup = False
                     st.rerun()
