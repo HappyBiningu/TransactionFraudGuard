@@ -2,7 +2,7 @@ modules = ["python-3.11"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["freefont_ttf", "xdg-utils"]
+packages = ["freefont_ttf", "glibcLocales", "xdg-utils"]
 
 [deployment]
 deploymentTarget = "autoscale"
