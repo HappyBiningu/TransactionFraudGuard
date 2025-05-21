@@ -140,6 +140,23 @@ def login_page():
     if "show_signup" not in st.session_state:
         st.session_state.show_signup = False
     
+    # Add CSS to hide the sidebar completely when not logged in
+    if not st.session_state.user_info:
+        hide_streamlit_style = """
+            <style>
+                [data-testid="collapsedControl"] {display: none;}
+                div[data-testid="stSidebarNav"] {display: none;}
+                section[data-testid="stSidebar"] {display: none;}
+                div.stApp [data-testid="stSidebar"] {display: none;}
+                button[kind="secondary"] {display: none;}
+                div[data-testid="stDecoration"] {display: none;}
+                .css-1d391kg {display: none;}
+                footer {visibility: hidden;}
+                #MainMenu {visibility: hidden;}
+            </style>
+        """
+        st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+    
     # Handle logout in the sidebar if user is logged in
     if st.session_state.user_info:
         with st.sidebar:
