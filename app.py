@@ -1549,8 +1549,10 @@ if is_authenticated:
                         linecolor='rgba(230,230,230,0.8)'
                     ),
                     yaxis=dict(
-                        title='Suspicious Rate (%)',
-                        titlefont=dict(color='#F59E0B'),
+                        title=dict(
+                            text='Suspicious Rate (%)',
+                            font=dict(color='#F59E0B')
+                        ),
                         tickfont=dict(color='#F59E0B'),
                         showgrid=True,
                         gridcolor='rgba(230,230,230,0.4)',
@@ -1558,8 +1560,10 @@ if is_authenticated:
                         linecolor='rgba(230,230,230,0.8)'
                     ),
                     yaxis2=dict(
-                        title='Transactions Analyzed',
-                        titlefont=dict(color='#3B82F6'),
+                        title=dict(
+                            text='Transactions Analyzed',
+                            font=dict(color='#3B82F6')
+                        ),
                         tickfont=dict(color='#3B82F6'),
                         overlaying='y',
                         side='right',
