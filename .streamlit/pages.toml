@@ -1,0 +1,5 @@
+# This file contains the configuration for the navigation bar in Streamlit.
+# It overrides the default navigation generated from folders/files.
+
+[pages]
+# Empty configuration disables the default auto-navigation
