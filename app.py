@@ -735,40 +735,12 @@ if is_authenticated:
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<h1 class="main-header">Unified Financial Intelligence Platform</h1>', unsafe_allow_html=True)
     
-    # Add enhanced dashboard header with date information
-    current_date = datetime.now().strftime("%B %d, %Y")
+    # Simplified header - removed date and pills section
     st.markdown(f"""
-    <div style="text-align: center; margin-bottom: 30px;">
+    <div style="text-align: center; margin-bottom: 20px;">
         <p style="color: #6B7280; font-size: 16px; margin-top: -15px;">
-            Financial Intelligence Dashboard • Last Updated: {current_date}
+            Key Performance Indicators for Users
         </p>
-        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 15px;">
-            <span class="dashboard-pill">Real-time Analytics</span>
-            <span class="dashboard-pill">Risk Assessment</span>
-            <span class="dashboard-pill">Multi-account Detection</span>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Add system status indicators
-    st.markdown("""
-    <div class="system-status">
-        <div class="system-status-item">
-            <span class="status-indicator green"></span>
-            <span class="status-text">Accounts Analysis</span>
-        </div>
-        <div class="system-status-item">
-            <span class="status-indicator green"></span>
-            <span class="status-text">Limit Monitoring</span>
-        </div>
-        <div class="system-status-item">
-            <span class="status-indicator green"></span>
-            <span class="status-text">Fraud Detection</span>
-        </div>
-        <div class="system-status-item">
-            <span class="status-indicator green"></span>
-            <span class="status-text">Data Processing</span>
-        </div>
     </div>
     """, unsafe_allow_html=True)
     
