@@ -169,7 +169,8 @@ def login_page():
         # Already logged in
         return True
     
-    st.title("Financial Intelligence Platform")
+    # Center the title with HTML
+    st.markdown("<h1 style='text-align: center;'>Unified Financial Intelligence Platform</h1>", unsafe_allow_html=True)
     
     # Login form - with column layout to control width
     if not st.session_state.show_signup:
