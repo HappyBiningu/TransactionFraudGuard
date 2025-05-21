@@ -130,6 +130,11 @@ def authenticate_user(username, password):
     conn.close()
     return False, None
 
+def set_signup_state():
+    """Set the signup state to show the signup form"""
+    st.session_state.show_signup = True
+    st.rerun()
+
 def login_page():
     """Render the login page"""
     init_auth_database()
@@ -196,13 +201,14 @@ def login_page():
                         else:
                             st.error("Invalid username or password")
         
+        # Sign up option below the form
+        col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.write("")
-            col_text, col_btn = st.columns([2, 1])
-            with col_text:
-                st.write("Don't have an account?")
+            col_msg, col_btn = st.columns([3, 2])
+            with col_msg:
+                st.markdown("Don't have an account?", unsafe_allow_html=True)
             with col_btn:
-                if st.button("Sign Up", use_container_width=True):
+                if st.button("Sign Up", key="signup_btn"):
                     st.session_state.show_signup = True
                     st.rerun()
     
@@ -242,12 +248,12 @@ def login_page():
                         else:
                             st.error(message)
             
-            st.write("")
-            col_text, col_btn = st.columns([2, 1])
-            with col_text:
-                st.write("Already have an account?")
+            # Login option below the form
+            col_msg, col_btn = st.columns([3, 2])
+            with col_msg:
+                st.markdown("Already have an account?", unsafe_allow_html=True)
             with col_btn:
-                if st.button("Log In", use_container_width=True):
+                if st.button("Log In", key="login_btn"):
                     st.session_state.show_signup = False
                     st.rerun()
     
