@@ -5,8 +5,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from auth import login_page, require_auth
-from top_navigation import render_top_navigation
 from theme_utils import apply_custom_theme
+from streamlit_config import use_default_navigation
 
 
 # Database files
@@ -125,9 +125,6 @@ is_authenticated = login_page()
 if is_authenticated:
     # Apply theme
     apply_custom_theme()
-    
-    # Render top navigation instead of sidebar
-    render_top_navigation()
     
     # Custom CSS for modern styling with a more sophisticated design
     st.markdown("""
