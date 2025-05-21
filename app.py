@@ -653,81 +653,11 @@ if is_authenticated:
         </div>
         """, unsafe_allow_html=True)
     
-    # Feature highlights section
-    st.markdown('<h2 class="section-header">Platform Capabilities</h2>', unsafe_allow_html=True)
-    feature_cols = st.columns(3)
+    # Empty space instead of features section
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
     
-    with feature_cols[0]:
-        st.markdown("""
-        <div class="feature-card feature-card-accounts">
-            <div class="feature-icon feature-icon-accounts">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4H12v3.5a.5.5 0 0 1-1 0v-4z"/>
-                </svg>
-            </div>
-            <div class="feature-title feature-title-accounts">Multiple Account Detection</div>
-            <ul class="feature-list feature-list-accounts">
-                <li>Identify individuals with accounts across multiple banks</li>
-                <li>Flag high-risk patterns and unusual activity</li>
-                <li>Monitor transaction flows between related accounts</li>
-                <li>Generate comprehensive relationship networks</li>
-                <li>Visual mapping of complex account structures</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with feature_cols[1]:
-        st.markdown("""
-        <div class="feature-card feature-card-limits">
-            <div class="feature-icon feature-icon-limits">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M9.5 2a.5.5 0 0 1 0 1h-3a.5.5 0 0 1 0-1h3zm-3 2a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 0-1h-3a.5.5 0 0 0-.5.5zm1.5 3a.5.5 0 0 1 0 1H3a.5.5 0 0 1 0-1h5zm-5 2a.5.5 0 0 0 .5.5h5a.5.5 0 0 0 0-1H3a.5.5 0 0 0-.5.5zm9.5-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-                    <path fill-rule="evenodd" d="M13.5 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-1zm-1 10a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-1a2 2 0 0 0-2 2v9z"/>
-                </svg>
-            </div>
-            <div class="feature-title feature-title-limits">Transaction Limit Monitoring</div>
-            <ul class="feature-list feature-list-limits">
-                <li>Track daily, weekly, and monthly transaction limits</li>
-                <li>Receive instant alerts on threshold violations</li>
-                <li>Customize monitoring rules by account type</li>
-                <li>Export compliance reports for regulatory review</li>
-                <li>Historical trend analysis of limit breaches</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with feature_cols[2]:
-        st.markdown("""
-        <div class="feature-card feature-card-fraud">
-            <div class="feature-icon feature-icon-fraud">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5ZM3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.58 26.58 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.933.933 0 0 1-.765.935c-.845.147-2.34.346-4.235.346-1.895 0-3.39-.2-4.235-.346A.933.933 0 0 1 3 9.219V8.062Zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a24.767 24.767 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25.286 25.286 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135Z"/>
-                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2V1.866ZM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5Z"/>
-                </svg>
-            </div>
-            <div class="feature-title feature-title-fraud">AI-Powered Fraud Detection</div>
-            <ul class="feature-list feature-list-fraud">
-                <li>Machine learning fraud prediction models</li>
-                <li>Probabilistic risk scoring for transactions</li>
-                <li>Detailed analysis and visual reporting</li>
-                <li>Continuous model improvement with feedback</li>
-                <li>Pattern recognition across transaction networks</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Platform overview message
-    st.markdown("""
-    <div class="overview-card">
-        <div class="overview-title">Platform Overview</div>
-        <div class="overview-content">
-            The Unified Financial Intelligence Platform provides robust monitoring and analytics tools designed for financial institutions and regulatory bodies. 
-            This dashboard presents a comprehensive overview of system activity, key metrics, and platform capabilities.
-            <br><br>
-            Select any module from the sidebar to access detailed analysis tools, management interfaces, and specialized reporting functions.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Empty space instead of overview
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
     
     # Add additional CSS for new components
     st.markdown("""
