@@ -14,7 +14,7 @@ from sidebar import render_sidebar
 DB_FILE = "fraud_detection.db"
 
 # Set page config
-st.set_page_config(page_title="User Profile", page_icon="👤", layout="wide")
+st.set_page_config(page_title="User Profile", page_icon="👤", layout="wide", menu_items=None)
 
 # Render sidebar navigation
 render_sidebar()
