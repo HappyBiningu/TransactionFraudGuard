@@ -197,10 +197,13 @@ def login_page():
                             st.error("Invalid username or password")
         
         with col2:
-            st.write("Don't have an account?")
-            if st.button("Sign Up"):
-                st.session_state.show_signup = True
-                st.rerun()
+            st.write("")
+            st.write("Don't have an account?", unsafe_allow_html=True)
+            col_left, col_right = st.columns([3, 1])
+            with col_right:
+                if st.button("Sign Up", use_container_width=True):
+                    st.session_state.show_signup = True
+                    st.rerun()
     
     # Sign-up form
     else:
@@ -238,10 +241,13 @@ def login_page():
                         else:
                             st.error(message)
             
+            st.write("")
             st.write("Already have an account?")
-            if st.button("Log In"):
-                st.session_state.show_signup = False
-                st.rerun()
+            col_left, col_right = st.columns([3, 1])
+            with col_right:
+                if st.button("Log In", use_container_width=True):
+                    st.session_state.show_signup = False
+                    st.rerun()
     
     return False
 
