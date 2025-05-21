@@ -1,0 +1,77 @@
+/* Hide navigation elements */
+[data-testid="collapsedControl"],
+div[data-testid="stSidebarNav"],
+button[data-testid="baseButton-secondary"],
+nav.st-emotion-cache-zq5wmm.ezrtsby0,
+button.st-emotion-cache-5rimss.e1nzilvr5,
+button[aria-label="Back"],
+a[data-testid="stSidebarNavLink"],
+div[data-testid="collapsedControl-container"],
+nav[data-testid="stSidebar"],
+div.viewerBadge,
+div.stApp > header,
+div.stApp > div[data-testid="stDecoration"],
+button.step-up,
+button.step-down {
+    display: none !important;
+}
+
+/* Fix margins and padding */
+section.main > div.block-container {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+}
+
+/* Remove all sidebar elements */
+section[data-testid="stSidebar"] {
+    display: none !important;
+    width: 0 !important;
+}
+
+/* Fix main content area */
+.main .block-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding-top: 2rem;
+}
+
+/* Remove collapse control */
+.st-emotion-cache-1dp5vir {
+    display: none !important;
+}
+
+/* Remove sidebar collapse button */
+button[kind=icon], 
+.st-emotion-cache-19rxjzo {
+    display: none !important;
+}
+
+/* Remove all navigation arrows */
+.arrow, 
+.arrow-container,
+.st-emotion-cache-1okhd5r {
+    display: none !important;
+}
+
+/* Hide icons */
+[data-icon] {
+    display: none !important;
+}
+
+/* Hide the arrow element */
+div > .st-emotion-cache-1okhd5r {
+    display: none !important;
+}
+
+.st-emotion-cache-dhfzlv.e13qjkje0 {
+    display: none !important;
+}
+
+/* Hide absolutely everything that's not in the main content */
+.embeddedapp-container {
+    margin-left: 0 !important;
+}
+
+.stApp > div:not(.main) {
+    display: none !important;
+}
