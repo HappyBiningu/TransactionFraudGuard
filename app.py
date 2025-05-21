@@ -735,14 +735,8 @@ if is_authenticated:
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
     st.markdown('<h1 class="main-header">Unified Financial Intelligence Platform</h1>', unsafe_allow_html=True)
     
-    # Simplified header - removed date and pills section
-    st.markdown(f"""
-    <div style="text-align: center; margin-bottom: 20px;">
-        <p style="color: #6B7280; font-size: 16px; margin-top: -15px;">
-            Key Performance Indicators for Users
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Completely simplified header - removed all subtext
+    st.markdown('<div style="margin-bottom: 20px;"></div>', unsafe_allow_html=True)
     
     # Summary cards section
     st.markdown('<h2 class="section-header">Intelligence Dashboard</h2>', unsafe_allow_html=True)
