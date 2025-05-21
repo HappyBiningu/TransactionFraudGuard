@@ -150,64 +150,7 @@ def login_page():
         
         return True
     
-    # Hide the sidebar and default navigation
-    hide_navbar = """
-        <style>
-            #MainMenu {visibility: hidden;}
-            header {visibility: hidden;}
-            .stDeployButton {visibility: hidden;}
-            footer {visibility: hidden;}
-            /* Ensure the page takes up the full width without sidebar */
-            .main .block-container {
-                max-width: 64rem;
-                padding: 2rem 5rem;
-                margin: 0 auto;
-            }
-        </style>
-    """
-    st.markdown(hide_navbar, unsafe_allow_html=True)
-    
-    # Center-aligned container for the login/signup forms
-    login_container_styles = """
-        <style>
-            .login-container {
-                max-width: 500px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f8f9fa;
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            .login-header {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .login-title {
-                font-size: 28px;
-                font-weight: bold;
-                color: #1E88E5;
-            }
-            .login-subtitle {
-                font-size: 16px;
-                color: #666;
-                margin-top: 5px;
-            }
-        </style>
-    """
-    st.markdown(login_container_styles, unsafe_allow_html=True)
-    
-    # Login/signup container header
-    st.markdown(
-        """
-        <div class="login-container">
-            <div class="login-header">
-                <div class="login-title">Financial Intelligence Platform</div>
-                <div class="login-subtitle">Secure access to financial monitoring tools</div>
-            </div>
-        </div>
-        """, 
-        unsafe_allow_html=True
-    )
+    st.title("Financial Intelligence Platform")
     
     # Login form
     if not st.session_state.show_signup:
