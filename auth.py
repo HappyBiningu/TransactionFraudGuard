@@ -151,6 +151,20 @@ def login_page():
             div[data-testid="baseButton-headerNoPadding"] {display: none !important;}
             button[kind="header"] {display: none !important;}
             ul[data-testid="stSidebarNavItems"] {display: none !important;}
+            /* Hide back arrow button */
+            button[data-testid="baseButton-secondary"] {display: none !important;}
+            a[data-testid="stSidebarNavLink"] {display: none !important;}
+            div[data-testid="collapsedControl-container"] {display: none !important;}
+            nav[data-testid="stSidebar"] {display: none !important;}
+            div.embeddedapp-wrapper {
+                margin-left: 0 !important;
+            }
+            div.viewerBadge {display: none !important;}
+            /* Hide all sidebar elements */
+            div.stApp > header {display: none !important;}
+            div.stApp > div[data-testid="stDecoration"] {display: none !important;}
+            button.step-up, button.step-down {display: none !important;}
+            section.main > div.block-container {padding-left: 20px !important; padding-right: 20px !important;}
         </style>
     """
     st.markdown(hide_sidebar_style, unsafe_allow_html=True)
