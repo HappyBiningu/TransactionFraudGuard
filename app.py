@@ -126,6 +126,9 @@ if is_authenticated:
     # Apply theme
     apply_custom_theme()
     
+    # Use default Streamlit navigation
+    use_default_navigation()
+    
     # Custom CSS for modern styling with a more sophisticated design
     st.markdown("""
     <style>

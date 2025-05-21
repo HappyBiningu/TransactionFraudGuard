@@ -22,13 +22,9 @@ st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", la
 # Apply custom theme
 apply_custom_theme()
 
-# Completely remove the default Streamlit sidebar
-from streamlit_config import remove_streamlit_sidebar
-remove_streamlit_sidebar()
-
-# Render top navigation
-from top_navigation import render_top_navigation
-render_top_navigation()
+# Use the default Streamlit navigation
+from streamlit_config import use_default_navigation
+use_default_navigation()
 
 # Apply authentication
 @require_auth
