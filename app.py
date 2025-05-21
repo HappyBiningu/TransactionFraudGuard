@@ -1,7 +1,9 @@
 import streamlit as st
 import sqlite3
-from datetime import datetime
 import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime, timedelta
 from auth import login_page, require_auth
 from sidebar import render_sidebar
 
@@ -32,6 +34,45 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
         return df.iloc[0, 0], df.iloc[0, 1]
     except:
         return None, None
+        
+# Helper function to fetch time series data for visualizations
+def fetch_time_series_data(db_file, query):
+    """Fetch time series data for charts"""
+    try:
+        conn = sqlite3.connect(db_file)
+        df = pd.read_sql_query(query, conn)
+        conn.close()
+        return df
+    except Exception as e:
+        st.error(f"Error fetching time series data: {str(e)}")
+        return pd.DataFrame()
+
+# Helper function to calculate KPI trends
+def calculate_kpi_trend(db_file, query_current, query_previous):
+    """Calculate KPI trend (current vs previous period)"""
+    try:
+        conn = sqlite3.connect(db_file)
+        cursor = conn.cursor()
+        
+        # Current period value
+        cursor.execute(query_current)
+        current = cursor.fetchone()[0] or 0
+        
+        # Previous period value
+        cursor.execute(query_previous)
+        previous = cursor.fetchone()[0] or 0
+        
+        conn.close()
+        
+        if previous == 0:
+            # Avoid division by zero
+            percent_change = 100 if current > 0 else 0
+        else:
+            percent_change = ((current - previous) / previous) * 100
+            
+        return current, percent_change
+    except Exception as e:
+        return 0, 0
 
 # Page layout
 st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide", menu_items=None)
@@ -687,6 +728,534 @@ if is_authenticated:
         </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Add additional CSS for new components
+    st.markdown("""
+    <style>
+        .kpi-container {
+            background-color: var(--background-light);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .kpi-card {
+            background-color: var(--background-card);
+            border-radius: var(--border-radius);
+            padding: 1.25rem;
+            box-shadow: var(--card-shadow);
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .kpi-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .kpi-trend {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .kpi-trend-up {
+            color: #10B981;
+        }
+        
+        .kpi-trend-down {
+            color: #EF4444;
+        }
+        
+        .kpi-trend-neutral {
+            color: #6B7280;
+        }
+        
+        .kpi-period {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .chart-container {
+            background-color: var(--background-card);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 2rem;
+            height: 100%;
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #E5E7EB;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # KPI Summary Section
+    st.markdown('<h2 class="section-header">Key Performance Indicators</h2>', unsafe_allow_html=True)
+    st.markdown('<div class="kpi-container">', unsafe_allow_html=True)
+    
+    # Create KPI summary
+    kpi_cols = st.columns(4)
+    
+    # -- KPI 1: Transaction Volume Trend --
+    with kpi_cols[0]:
+        # Calculate current month vs previous month transaction volume
+        current_query = f"""
+        SELECT COUNT(*) FROM transactions 
+        WHERE strftime('%Y-%m', timestamp) = strftime('%Y-%m', 'now')
+        """
+        previous_query = f"""
+        SELECT COUNT(*) FROM transactions 
+        WHERE strftime('%Y-%m', timestamp) = strftime('%Y-%m', datetime('now', '-1 month'))
+        """
+        
+        tx_count, tx_change = calculate_kpi_trend(
+            DBS["Accounts Analysis"], 
+            current_query, 
+            previous_query
+        )
+        
+        # Determine trend direction and icon
+        if tx_change > 0:
+            trend_class = "kpi-trend-up"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+            </svg>"""
+        elif tx_change < 0:
+            trend_class = "kpi-trend-down"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+            </svg>"""
+        else:
+            trend_class = "kpi-trend-neutral"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
+                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3z"/>
+            </svg>"""
+        
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Transaction Volume</div>
+            <div class="kpi-value">{tx_count:,}</div>
+            <div class="kpi-trend {trend_class}">
+                {trend_icon} {abs(tx_change):.1f}%
+            </div>
+            <div class="kpi-period">vs previous month</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # -- KPI 2: Fraud Detection Rate --
+    with kpi_cols[1]:
+        # Calculate current week vs previous week fraud detection rate
+        current_query = f"""
+        SELECT COUNT(*) FROM fraud_detection_results 
+        WHERE predicted_suspicious = 1
+        AND strftime('%Y-%W', timestamp) = strftime('%Y-%W', 'now')
+        """
+        previous_query = f"""
+        SELECT COUNT(*) FROM fraud_detection_results 
+        WHERE predicted_suspicious = 1
+        AND strftime('%Y-%W', timestamp) = strftime('%Y-%W', datetime('now', '-7 days'))
+        """
+        
+        fraud_count, fraud_change = calculate_kpi_trend(
+            DBS["Fraud Detection"], 
+            current_query, 
+            previous_query
+        )
+        
+        # Determine trend direction and icon (for fraud, down is good)
+        if fraud_change < 0:
+            trend_class = "kpi-trend-up"  # Fewer frauds is good
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+            </svg>"""
+        elif fraud_change > 0:
+            trend_class = "kpi-trend-down"  # More frauds is bad
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+            </svg>"""
+        else:
+            trend_class = "kpi-trend-neutral"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
+                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3z"/>
+            </svg>"""
+        
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Fraud Detections</div>
+            <div class="kpi-value">{fraud_count:,}</div>
+            <div class="kpi-trend {trend_class}">
+                {trend_icon} {abs(fraud_change):.1f}%
+            </div>
+            <div class="kpi-period">vs previous week</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # -- KPI 3: Limit Violation Rate --
+    with kpi_cols[2]:
+        # Calculate current week vs previous week violation rate
+        current_query = f"""
+        SELECT COUNT(*) FROM violations 
+        WHERE strftime('%Y-%W', created_at) = strftime('%Y-%W', 'now')
+        """
+        previous_query = f"""
+        SELECT COUNT(*) FROM violations 
+        WHERE strftime('%Y-%W', created_at) = strftime('%Y-%W', datetime('now', '-7 days'))
+        """
+        
+        violation_count, violation_change = calculate_kpi_trend(
+            DBS["Limit Monitoring"], 
+            current_query, 
+            previous_query
+        )
+        
+        # Determine trend direction and icon (for violations, down is good)
+        if violation_change < 0:
+            trend_class = "kpi-trend-up"  # Fewer violations is good
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+            </svg>"""
+        elif violation_change > 0:
+            trend_class = "kpi-trend-down"  # More violations is bad 
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+            </svg>"""
+        else:
+            trend_class = "kpi-trend-neutral"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
+                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3z"/>
+            </svg>"""
+        
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Limit Violations</div>
+            <div class="kpi-value">{violation_count:,}</div>
+            <div class="kpi-trend {trend_class}">
+                {trend_icon} {abs(violation_change):.1f}%
+            </div>
+            <div class="kpi-period">vs previous week</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # -- KPI 4: Multiple Accounts Detected --
+    with kpi_cols[3]:
+        # Calculate current month vs previous month multiple accounts
+        current_query = f"""
+        SELECT COUNT(DISTINCT individual_id) FROM transactions 
+        WHERE individual_id IN (
+            SELECT individual_id FROM transactions 
+            GROUP BY individual_id 
+            HAVING COUNT(DISTINCT bank_id) > 1
+        )
+        AND strftime('%Y-%m', timestamp) = strftime('%Y-%m', 'now')
+        """
+        previous_query = f"""
+        SELECT COUNT(DISTINCT individual_id) FROM transactions 
+        WHERE individual_id IN (
+            SELECT individual_id FROM transactions 
+            GROUP BY individual_id 
+            HAVING COUNT(DISTINCT bank_id) > 1
+        )
+        AND strftime('%Y-%m', timestamp) = strftime('%Y-%m', datetime('now', '-1 month'))
+        """
+        
+        multi_acct_count, multi_acct_change = calculate_kpi_trend(
+            DBS["Accounts Analysis"], 
+            current_query, 
+            previous_query
+        )
+        
+        # Determine trend direction and icon
+        if multi_acct_change > 0:
+            trend_class = "kpi-trend-up"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="m7.247 4.86-4.796 5.481c-.566.647-.106 1.659.753 1.659h9.592a1 1 0 0 0 .753-1.659l-4.796-5.48a1 1 0 0 0-1.506 0z"/>
+            </svg>"""
+        elif multi_acct_change < 0:
+            trend_class = "kpi-trend-down"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/>
+            </svg>"""
+        else:
+            trend_class = "kpi-trend-neutral"
+            trend_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 6.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V11a.5.5 0 0 1-1 0V9.5H6a.5.5 0 0 1 0-1h1.5V7a.5.5 0 0 1 .5-.5z"/>
+                <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3z"/>
+            </svg>"""
+        
+        st.markdown(f"""
+        <div class="kpi-card">
+            <div class="kpi-title">Multiple Accounts</div>
+            <div class="kpi-value">{multi_acct_count:,}</div>
+            <div class="kpi-trend {trend_class}">
+                {trend_icon} {abs(multi_acct_change):.1f}%
+            </div>
+            <div class="kpi-period">vs previous month</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Close KPI container
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Interactive Data Visualizations Section
+    st.markdown('<h2 class="section-header">Data Insights</h2>', unsafe_allow_html=True)
+    
+    # Create a layout for visualizations
+    chart_cols = st.columns(2)
+    
+    # Chart 1: Transaction Volume by Bank
+    with chart_cols[0]:
+        try:
+            # Get transaction volume by bank
+            query = """
+            SELECT b.bank_name, COUNT(*) as transaction_count
+            FROM transactions t
+            JOIN (
+                SELECT DISTINCT bank_id, 'Bank ' || bank_id as bank_name
+                FROM transactions
+            ) b ON t.bank_id = b.bank_id
+            GROUP BY b.bank_name
+            ORDER BY transaction_count DESC
+            LIMIT 10
+            """
+            
+            # Fetch data
+            tx_by_bank_df = fetch_time_series_data(DBS["Accounts Analysis"], query)
+            
+            if not tx_by_bank_df.empty:
+                # Create bar chart
+                fig = px.bar(
+                    tx_by_bank_df,
+                    x='bank_name',
+                    y='transaction_count',
+                    color_discrete_sequence=['#3B82F6'],
+                    title="Transaction Volume by Bank",
+                )
+                
+                # Customize layout
+                fig.update_layout(
+                    height=350,
+                    xaxis_title="Bank",
+                    yaxis_title="Transaction Count",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    xaxis=dict(showgrid=False),
+                    yaxis=dict(gridcolor='rgba(230,230,230,0.4)'),
+                    margin=dict(l=10, r=10, t=50, b=30),
+                )
+                
+                # Display chart in a container
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.info("No transaction data available for visualization.")
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+        except Exception as e:
+            st.error(f"Error generating transaction volume chart: {str(e)}")
+    
+    # Chart 2: Fraud Detection Trend
+    with chart_cols[1]:
+        try:
+            # Get fraud detection trend data
+            query = """
+            SELECT 
+                strftime('%Y-%m-%d', timestamp) as date,
+                COUNT(*) as total_analyzed,
+                SUM(CASE WHEN predicted_suspicious = 1 THEN 1 ELSE 0 END) as suspicious
+            FROM fraud_detection_results
+            GROUP BY date
+            ORDER BY date DESC
+            LIMIT 14
+            """
+            
+            # Fetch data
+            fraud_trend_df = fetch_time_series_data(DBS["Fraud Detection"], query)
+            
+            if not fraud_trend_df.empty:
+                # Reverse for chronological order
+                fraud_trend_df = fraud_trend_df.iloc[::-1].reset_index(drop=True)
+                
+                # Calculate suspicious percentage
+                fraud_trend_df['suspicious_pct'] = (fraud_trend_df['suspicious'] / fraud_trend_df['total_analyzed'] * 100).round(1)
+                
+                # Create line chart
+                fig = px.line(
+                    fraud_trend_df,
+                    x='date',
+                    y='suspicious_pct',
+                    markers=True,
+                    title="Suspicious Transaction Rate Trend",
+                    color_discrete_sequence=['#F59E0B'],
+                )
+                
+                # Add shaded area
+                fig.add_trace(
+                    go.Scatter(
+                        x=fraud_trend_df['date'],
+                        y=fraud_trend_df['suspicious_pct'],
+                        mode='none',
+                        fill='tozeroy',
+                        fillcolor='rgba(245, 158, 11, 0.2)',
+                        name='Suspicious Rate',
+                        showlegend=False,
+                    )
+                )
+                
+                # Customize layout
+                fig.update_layout(
+                    height=350,
+                    xaxis_title="Date",
+                    yaxis_title="Suspicious Rate (%)",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    xaxis=dict(showgrid=False),
+                    yaxis=dict(gridcolor='rgba(230,230,230,0.4)'),
+                    margin=dict(l=10, r=10, t=50, b=30),
+                )
+                
+                # Display chart in a container
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.info("No fraud detection data available for visualization.")
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+        except Exception as e:
+            st.error(f"Error generating fraud detection trend chart: {str(e)}")
+    
+    # Second row of charts
+    chart_cols2 = st.columns(2)
+    
+    # Chart 3: Transaction Limit Violations by Type
+    with chart_cols2[0]:
+        try:
+            # Get violation data by type
+            query = """
+            SELECT 
+                CASE
+                    WHEN type = 'daily' THEN 'Daily Limit'
+                    WHEN type = 'weekly' THEN 'Weekly Limit'
+                    WHEN type = 'monthly' THEN 'Monthly Limit'
+                    ELSE type
+                END as violation_type,
+                COUNT(*) as violation_count
+            FROM violations
+            GROUP BY type
+            ORDER BY violation_count DESC
+            """
+            
+            # Fetch data
+            violations_df = fetch_time_series_data(DBS["Limit Monitoring"], query)
+            
+            if not violations_df.empty:
+                # Create pie chart
+                fig = px.pie(
+                    violations_df,
+                    values='violation_count',
+                    names='violation_type',
+                    title="Limit Violations by Type",
+                    color_discrete_sequence=['#2563EB', '#10B981', '#F59E0B', '#EF4444'],
+                    hole=0.4,
+                )
+                
+                # Customize layout
+                fig.update_layout(
+                    height=350,
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=10, r=10, t=50, b=10),
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=-0.2,
+                        xanchor="center",
+                        x=0.5
+                    ),
+                )
+                
+                # Display chart in a container
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.info("No violation data available for visualization.")
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+        except Exception as e:
+            st.error(f"Error generating violations chart: {str(e)}")
+    
+    # Chart 4: Multiple Accounts Distribution
+    with chart_cols2[1]:
+        try:
+            # Get accounts distribution data
+            query = """
+            SELECT 
+                COUNT(DISTINCT bank_id) as bank_count,
+                COUNT(DISTINCT individual_id) as individual_count
+            FROM transactions
+            GROUP BY individual_id
+            """
+            
+            # Fetch data
+            accounts_df = fetch_time_series_data(DBS["Accounts Analysis"], query)
+            
+            if not accounts_df.empty:
+                # Group by bank count
+                accounts_grouped = accounts_df.groupby('bank_count')['individual_count'].sum().reset_index()
+                accounts_grouped.columns = ['Number of Banks', 'Count of Individuals']
+                
+                # Create bar chart
+                fig = px.bar(
+                    accounts_grouped,
+                    x='Number of Banks',
+                    y='Count of Individuals',
+                    color_discrete_sequence=['#1E40AF'],
+                    title="Individuals by Number of Banks",
+                )
+                
+                # Customize layout
+                fig.update_layout(
+                    height=350,
+                    xaxis_title="Number of Banks",
+                    yaxis_title="Count of Individuals",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    xaxis=dict(showgrid=False, type='category'),
+                    yaxis=dict(gridcolor='rgba(230,230,230,0.4)'),
+                    margin=dict(l=10, r=10, t=50, b=30),
+                )
+                
+                # Display chart in a container
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                st.markdown('</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                st.info("No multiple accounts data available for visualization.")
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+        except Exception as e:
+            st.error(f"Error generating multiple accounts chart: {str(e)}")
     
     # Close the main container
     st.markdown('</div>', unsafe_allow_html=True)
