@@ -2,7 +2,7 @@ import streamlit as st
 import sqlite3
 from datetime import datetime
 import pandas as pd
-from auth import login_page, require_auth
+from auth import login_page, require_auth, get_current_user
 
 # Database files
 DBS = {
@@ -32,14 +32,39 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
     except:
         return None, None
 
-# Page layout
-st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide")
+# Page config with no sidebar
+st.set_page_config(
+    page_title="Financial Intelligence Platform", 
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
+# Hide all navigation elements via CSS
+hide_all_navigation = """
+<style>
+    [data-testid="collapsedControl"] {display: none !important;}
+    section[data-testid="stSidebar"] {display: none !important;}
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    div[data-testid="stSidebarNav"] {display: none !important;}
+    div[data-testid="baseButton-headerNoPadding"] {display: none !important;}
+    button[kind="header"] {display: none !important;}
+    ul[data-testid="stSidebarNavItems"] {display: none !important;}
+</style>
+"""
+st.markdown(hide_all_navigation, unsafe_allow_html=True)
 
 # Check if user is logged in
 is_authenticated = login_page()
 
 if is_authenticated:
+    # Show the main dashboard only if authenticated
     st.title("📊 Unified Financial Intelligence Dashboard")
+    
+    # Welcome message with user info
+    user_info = get_current_user()
+    st.success(f"Welcome, {user_info['full_name']}! You are logged in as a {user_info['role']}.")
     
     # Summary cards
     st.markdown("### 🔍 Summary Overview")
@@ -96,15 +121,29 @@ if is_authenticated:
     
     # Navigation
     st.markdown("---")
-    st.header("📁 Open Modules")
+    st.header("📁 Modules")
     
-    col_mod1, col_mod2, col_mod3 = st.columns(3)
-    with col_mod1:
-        st.page_link("pages/1_multiple_accounts.py", label="🔍 Multiple Accounts Analysis", icon="🔗")
-    with col_mod2:
-        st.page_link("pages/2_limit_monitoring.py", label="🚦 Limit Monitoring", icon="🔗")
-    with col_mod3:
-        st.page_link("pages/3_fraud_detection.py", label="🛡️ Fraud Detection System", icon="🔗")
+    modules_cols = st.columns(3)
+    with modules_cols[0]:
+        st.subheader("🔍 Multiple Accounts Analysis")
+        st.write("Identify individuals with multiple accounts across banks")
+        if st.button("Open Multiple Accounts Module", key="open_ma", use_container_width=True):
+            st.switch_page("pages/1_multiple_accounts.py")
+            
+    with modules_cols[1]:
+        st.subheader("🚦 Limit Monitoring")
+        st.write("Track transaction limits and detect violations")
+        if st.button("Open Limit Monitoring Module", key="open_lm", use_container_width=True):
+            st.switch_page("pages/2_limit_monitoring.py")
+            
+    with modules_cols[2]:
+        st.subheader("🛡️ Fraud Detection")
+        st.write("Analyze transactions for potential fraud")
+        if st.button("Open Fraud Detection Module", key="open_fd", use_container_width=True):
+            st.switch_page("pages/3_fraud_detection.py")
     
+    # Logout button
     st.markdown("---")
-    st.info("This dashboard provides a snapshot of all transaction monitoring systems. Visit each module for full analysis, management, and exports.")
+    if st.button("Logout", type="primary"):
+        st.session_state.user_info = None
+        st.rerun()

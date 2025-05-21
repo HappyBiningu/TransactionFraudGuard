@@ -134,19 +134,23 @@ def login_page():
     """Render the login page"""
     init_auth_database()
     
-    # Hide the sidebar
+    # Hide the sidebar and all navigation
     hide_sidebar_style = """
         <style>
-            [data-testid="collapsedControl"] {display: none;}
-            #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-            header {visibility: hidden;}
+            [data-testid="collapsedControl"] {display: none !important;}
+            section[data-testid="stSidebar"] {display: none !important;}
+            #MainMenu {visibility: hidden !important;}
+            footer {visibility: hidden !important;}
+            header {visibility: hidden !important;}
             .block-container {
                 padding-top: 2rem;
                 max-width: 800px;
                 margin: 0 auto;
             }
-            div[data-testid="stSidebarNav"] {display: none;}
+            div[data-testid="stSidebarNav"] {display: none !important;}
+            div[data-testid="baseButton-headerNoPadding"] {display: none !important;}
+            button[kind="header"] {display: none !important;}
+            ul[data-testid="stSidebarNavItems"] {display: none !important;}
         </style>
     """
     st.markdown(hide_sidebar_style, unsafe_allow_html=True)
