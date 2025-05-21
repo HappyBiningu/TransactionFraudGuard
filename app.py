@@ -1447,38 +1447,133 @@ if is_authenticated:
                 # Calculate suspicious percentage
                 fraud_trend_df['suspicious_pct'] = (fraud_trend_df['suspicious'] / fraud_trend_df['total_analyzed'] * 100).round(1)
                 
-                # Create line chart
-                fig = px.line(
-                    fraud_trend_df,
-                    x='date',
-                    y='suspicious_pct',
-                    markers=True,
-                    title="Suspicious Transaction Rate Trend",
-                    color_discrete_sequence=['#F59E0B'],
+                # Create an enhanced visualization with dual metrics
+                fig = go.Figure()
+                
+                # Add suspicious rate line
+                fig.add_trace(go.Scatter(
+                    x=fraud_trend_df['date'],
+                    y=fraud_trend_df['suspicious_pct'],
+                    mode='lines+markers',
+                    name='Suspicious Rate (%)',
+                    line=dict(color='#F59E0B', width=3),
+                    marker=dict(size=8, color='#F59E0B', line=dict(width=2, color='white')),
+                    fill='tozeroy',
+                    fillcolor='rgba(245, 158, 11, 0.1)',
+                    hovertemplate='<b>%{x}</b><br>Rate: %{y:.1f}%<br>'
+                ))
+                
+                # Add total transactions analyzed line on secondary y-axis
+                fig.add_trace(go.Scatter(
+                    x=fraud_trend_df['date'],
+                    y=fraud_trend_df['total_analyzed'],
+                    mode='lines',
+                    name='Total Analyzed',
+                    line=dict(color='#3B82F6', width=2, dash='dot'),
+                    yaxis='y2',
+                    hovertemplate='<b>%{x}</b><br>Analyzed: %{y:,}<br>'
+                ))
+                
+                # Add annotations for peaks in suspicious rate
+                max_idx = fraud_trend_df['suspicious_pct'].idxmax()
+                max_date = fraud_trend_df.loc[max_idx, 'date']
+                max_pct = fraud_trend_df.loc[max_idx, 'suspicious_pct']
+                
+                fig.add_annotation(
+                    x=max_date,
+                    y=max_pct,
+                    text=f"Peak: {max_pct:.1f}%",
+                    showarrow=True,
+                    arrowhead=1,
+                    arrowsize=1,
+                    arrowwidth=2,
+                    arrowcolor='#DC2626',
+                    font=dict(color='#DC2626', size=12),
+                    bgcolor='white',
+                    bordercolor='#DC2626',
+                    borderwidth=1,
+                    borderpad=4,
+                    ay=-40
                 )
                 
-                # Add shaded area
-                fig.add_trace(
-                    go.Scatter(
-                        x=fraud_trend_df['date'],
-                        y=fraud_trend_df['suspicious_pct'],
-                        mode='none',
-                        fill='tozeroy',
-                        fillcolor='rgba(245, 158, 11, 0.2)',
-                        name='Suspicious Rate',
-                        showlegend=False,
+                # Calculate trend line to show direction
+                if len(fraud_trend_df) > 1:
+                    last_week = fraud_trend_df.iloc[-7:] if len(fraud_trend_df) >= 7 else fraud_trend_df
+                    first_val = last_week['suspicious_pct'].iloc[0]
+                    last_val = last_week['suspicious_pct'].iloc[-1]
+                    trend_text = "Increasing ↑" if last_val > first_val else "Decreasing ↓"
+                    trend_color = "#DC2626" if last_val > first_val else "#10B981"
+                    
+                    # Add a trend indicator
+                    fig.add_annotation(
+                        x=fraud_trend_df['date'].iloc[-1],
+                        y=fraud_trend_df['suspicious_pct'].min(),
+                        text=f"Recent Trend: {trend_text}",
+                        showarrow=False,
+                        font=dict(color=trend_color, size=13, family="Arial Black"),
+                        bgcolor='rgba(255,255,255,0.8)',
+                        bordercolor=trend_color,
+                        borderwidth=1,
+                        borderpad=4,
+                        xanchor="right",
+                        yanchor="bottom",
+                        xshift=10
                     )
-                )
                 
-                # Customize layout
+                # Customize layout with enhanced styling
                 fig.update_layout(
-                    height=350,
-                    xaxis_title="Date",
-                    yaxis_title="Suspicious Rate (%)",
+                    height=400,
+                    title={
+                        'text': "<b>Suspicious Transaction Rate Analysis</b>",
+                        'y':0.95,
+                        'x':0.5,
+                        'xanchor': 'center',
+                        'yanchor': 'top',
+                        'font': {'size': 22, 'color': '#F59E0B'}
+                    },
+                    legend=dict(
+                        orientation="h",
+                        yanchor="bottom",
+                        y=1.02,
+                        xanchor="center",
+                        x=0.5,
+                        bgcolor='rgba(255,255,255,0.8)',
+                        bordercolor='rgba(230,230,230,0.9)',
+                        borderwidth=1
+                    ),
                     plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(showgrid=False),
-                    yaxis=dict(gridcolor='rgba(230,230,230,0.4)'),
-                    margin=dict(l=10, r=10, t=50, b=30),
+                    xaxis=dict(
+                        title=None,
+                        showgrid=False,
+                        showline=True,
+                        linecolor='rgba(230,230,230,0.8)'
+                    ),
+                    yaxis=dict(
+                        title='Suspicious Rate (%)',
+                        titlefont=dict(color='#F59E0B'),
+                        tickfont=dict(color='#F59E0B'),
+                        showgrid=True,
+                        gridcolor='rgba(230,230,230,0.4)',
+                        showline=True,
+                        linecolor='rgba(230,230,230,0.8)'
+                    ),
+                    yaxis2=dict(
+                        title='Transactions Analyzed',
+                        titlefont=dict(color='#3B82F6'),
+                        tickfont=dict(color='#3B82F6'),
+                        overlaying='y',
+                        side='right',
+                        showgrid=False,
+                        tickformat=',',
+                        range=[0, fraud_trend_df['total_analyzed'].max() * 1.1]
+                    ),
+                    hovermode="x unified",
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=14,
+                        font_family="Roboto"
+                    ),
+                    margin=dict(l=10, r=60, t=70, b=30)
                 )
                 
                 # Display chart in a container
@@ -1518,28 +1613,75 @@ if is_authenticated:
             violations_df = fetch_time_series_data(DBS["Limit Monitoring"], query)
             
             if not violations_df.empty:
-                # Create pie chart
-                fig = px.pie(
-                    violations_df,
-                    values='violation_count',
-                    names='violation_type',
-                    title="Limit Violations by Type",
-                    color_discrete_sequence=['#2563EB', '#10B981', '#F59E0B', '#EF4444'],
-                    hole=0.4,
+                # Calculate percentages for better visualization
+                total_violations = violations_df['violation_count'].sum()
+                violations_df['percentage'] = (violations_df['violation_count'] / total_violations * 100).round(1)
+                violations_df['label'] = violations_df.apply(
+                    lambda x: f"{x['violation_type']}: {x['violation_count']} ({x['percentage']}%)", axis=1
                 )
                 
-                # Customize layout
+                # Create enhanced pie chart with custom styling
+                fig = go.Figure(data=[go.Pie(
+                    labels=violations_df['violation_type'],
+                    values=violations_df['violation_count'],
+                    text=violations_df['percentage'].apply(lambda x: f"{x}%"),
+                    textinfo='text',
+                    hoverinfo='label+value+percent',
+                    textfont=dict(size=14, color='white'),
+                    marker=dict(
+                        colors=['#2563EB', '#10B981', '#F59E0B', '#EF4444'],
+                        line=dict(color='white', width=2)
+                    ),
+                    hole=0.5,
+                    rotation=90,
+                    pull=[0.05 if x == violations_df['violation_count'].max() else 0 for x in violations_df['violation_count']]
+                )])
+                
+                # Add a title in the center
+                fig.add_annotation(
+                    text="Violations<br>by Type",
+                    x=0.5, y=0.5,
+                    font=dict(size=20, color='#1E40AF', family='Arial Black'),
+                    showarrow=False
+                )
+                
+                # Add total count in the center below the title
+                fig.add_annotation(
+                    text=f"Total: {total_violations}",
+                    x=0.5, y=0.42,
+                    font=dict(size=16, color='#64748B'),
+                    showarrow=False
+                )
+                
+                # Customize layout with enhanced styling
                 fig.update_layout(
-                    height=350,
+                    height=400,
+                    title={
+                        'text': "<b>Transaction Limit Violations Analysis</b>",
+                        'y':0.95,
+                        'x':0.5,
+                        'xanchor': 'center',
+                        'yanchor': 'top',
+                        'font': {'size': 22, 'color': '#2563EB'}
+                    },
                     plot_bgcolor='rgba(0,0,0,0)',
-                    margin=dict(l=10, r=10, t=50, b=10),
+                    margin=dict(l=20, r=20, t=70, b=20),
                     legend=dict(
                         orientation="h",
                         yanchor="bottom",
-                        y=-0.2,
+                        y=-0.15,
                         xanchor="center",
-                        x=0.5
+                        x=0.5,
+                        font=dict(size=14),
+                        bgcolor='rgba(255,255,255,0.8)',
+                        bordercolor='rgba(230,230,230,0.9)',
+                        borderwidth=1
                     ),
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=14,
+                        font_family="Roboto"
+                    )
                 )
                 
                 # Display chart in a container
@@ -1574,24 +1716,87 @@ if is_authenticated:
                 accounts_grouped = accounts_df.groupby('bank_count')['individual_count'].sum().reset_index()
                 accounts_grouped.columns = ['Number of Banks', 'Count of Individuals']
                 
-                # Create bar chart
-                fig = px.bar(
-                    accounts_grouped,
-                    x='Number of Banks',
-                    y='Count of Individuals',
-                    color_discrete_sequence=['#1E40AF'],
-                    title="Individuals by Number of Banks",
+                # Calculate insights for annotations
+                total_individuals = accounts_grouped['Count of Individuals'].sum()
+                multi_bank_count = accounts_grouped[accounts_grouped['Number of Banks'] > 1]['Count of Individuals'].sum()
+                multi_bank_pct = (multi_bank_count / total_individuals * 100).round(1)
+                
+                # Add percentage column
+                accounts_grouped['Percentage'] = (accounts_grouped['Count of Individuals'] / total_individuals * 100).round(1)
+                
+                # Create enhanced bar chart with gradient color and annotations
+                fig = go.Figure()
+                
+                # Add bar chart
+                fig.add_trace(go.Bar(
+                    x=accounts_grouped['Number of Banks'],
+                    y=accounts_grouped['Count of Individuals'],
+                    text=accounts_grouped['Count of Individuals'],
+                    textposition='auto',
+                    marker=dict(
+                        color=accounts_grouped['Number of Banks'],
+                        colorscale=[[0, '#DBEAFE'], [0.5, '#93C5FD'], [1, '#1E40AF']],
+                        line=dict(width=1, color='white')
+                    ),
+                    hovertemplate='<b>%{x} Banks</b><br>Individuals: %{y:,}<br>Percentage: %{customdata:.1f}%',
+                    customdata=accounts_grouped['Percentage'],
+                    width=0.7
+                ))
+                
+                # Add summary annotation
+                fig.add_annotation(
+                    xref="paper", yref="paper",
+                    x=0.95, y=0.95,
+                    text=f"<b>{multi_bank_pct}%</b> of individuals<br>have multiple bank<br>accounts",
+                    showarrow=False,
+                    font=dict(family="Arial", size=14, color="#1E40AF"),
+                    align="right",
+                    bordercolor="#93C5FD",
+                    borderwidth=2,
+                    borderpad=6,
+                    bgcolor="rgba(219, 234, 254, 0.8)",
+                    opacity=0.8
                 )
                 
-                # Customize layout
+                # Customize layout with enhanced styling
                 fig.update_layout(
-                    height=350,
-                    xaxis_title="Number of Banks",
-                    yaxis_title="Count of Individuals",
+                    height=400,
+                    title={
+                        'text': "<b>Multiple Account Distribution Analysis</b>",
+                        'y':0.95,
+                        'x':0.5,
+                        'xanchor': 'center',
+                        'yanchor': 'top',
+                        'font': {'size': 22, 'color': '#1E40AF'}
+                    },
+                    xaxis=dict(
+                        title='Number of Banks per Individual',
+                        titlefont=dict(size=14),
+                        showgrid=False,
+                        showline=True,
+                        linecolor='rgba(230,230,230,0.8)',
+                        type='category',
+                        tickmode='array',
+                        tickvals=accounts_grouped['Number of Banks'],
+                        ticktext=[f"{x} Banks" for x in accounts_grouped['Number of Banks']]
+                    ),
+                    yaxis=dict(
+                        title='Count of Individuals',
+                        titlefont=dict(size=14),
+                        showgrid=True,
+                        gridcolor='rgba(230,230,230,0.4)',
+                        showline=True,
+                        linecolor='rgba(230,230,230,0.8)',
+                        tickformat=','
+                    ),
                     plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(showgrid=False, type='category'),
-                    yaxis=dict(gridcolor='rgba(230,230,230,0.4)'),
-                    margin=dict(l=10, r=10, t=50, b=30),
+                    margin=dict(l=10, r=10, t=70, b=50),
+                    hoverlabel=dict(
+                        bgcolor="white",
+                        font_size=14,
+                        font_family="Roboto"
+                    ),
+                    bargap=0.15
                 )
                 
                 # Display chart in a container
