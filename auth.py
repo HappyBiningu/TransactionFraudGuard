@@ -134,6 +134,23 @@ def login_page():
     """Render the login page"""
     init_auth_database()
     
+    # Hide the sidebar
+    hide_sidebar_style = """
+        <style>
+            [data-testid="collapsedControl"] {display: none;}
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            .block-container {
+                padding-top: 2rem;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            div[data-testid="stSidebarNav"] {display: none;}
+        </style>
+    """
+    st.markdown(hide_sidebar_style, unsafe_allow_html=True)
+    
     if "user_info" not in st.session_state:
         st.session_state.user_info = None
     
@@ -150,69 +167,92 @@ def login_page():
         
         return True
     
-    st.title("Financial Intelligence Platform")
+    col1, col2, col3 = st.columns([1, 2, 1])
     
-    # Login form
-    if not st.session_state.show_signup:
-        with st.form("login_form"):
-            st.subheader("🔐 Login")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Login")
-            
-            if submitted:
-                if not username or not password:
-                    st.error("Please provide both username and password")
-                else:
-                    success, user_info = authenticate_user(username, password)
-                    if success:
-                        st.session_state.user_info = user_info
-                        st.success(f"Welcome, {user_info['full_name']}!")
-                        st.rerun()
-                    else:
-                        st.error("Invalid username or password")
+    with col2:
+        st.title("Financial Intelligence Platform", anchor=False)
+        st.markdown("<p style='text-align: center;'>Secure access to financial monitoring tools</p>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        st.write("Don't have an account?")
-        if st.button("Sign Up"):
-            st.session_state.show_signup = True
-            st.rerun()
-    
-    # Sign-up form
-    else:
-        with st.form("signup_form"):
-            st.subheader("📝 Create Account")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            confirm_password = st.text_input("Confirm Password", type="password")
-            full_name = st.text_input("Full Name")
-            role = st.selectbox("Role", ["analyst", "supervisor"])
+        # Login form container with styling
+        login_container = st.container(border=True)
+        
+        with login_container:
+            # Login form
+            if not st.session_state.show_signup:
+                st.markdown("### 🔒 Login")
+                
+                with st.form("login_form"):
+                    username = st.text_input("Username")
+                    password = st.text_input("Password", type="password")
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        submitted = st.form_submit_button("Login", use_container_width=True)
+                    
+                    if submitted:
+                        if not username or not password:
+                            st.error("Please provide both username and password")
+                        else:
+                            success, user_info = authenticate_user(username, password)
+                            if success:
+                                st.session_state.user_info = user_info
+                                st.success(f"Welcome, {user_info['full_name']}!")
+                                st.rerun()
+                            else:
+                                st.error("Invalid username or password")
+                
+                st.markdown("<div style='text-align: center; margin-top: 15px;'>Don't have an account?</div>", unsafe_allow_html=True)
+                
+                # Center the signup button
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col2:
+                    if st.button("Sign Up", use_container_width=True):
+                        st.session_state.show_signup = True
+                        st.rerun()
             
-            submitted = st.form_submit_button("Create Account")
-            
-            if submitted:
-                if not username or not password or not confirm_password or not full_name:
-                    st.error("All fields are required")
-                elif password != confirm_password:
-                    st.error("Passwords do not match")
-                else:
-                    success, message = create_user(username, password, full_name, role)
-                    if success:
-                        st.success(message)
-                        # Log in the user automatically
-                        st.session_state.user_info = {
-                            "username": username,
-                            "full_name": full_name,
-                            "role": role
-                        }
+            # Sign-up form
+            else:
+                st.markdown("### 📝 Create Account")
+                
+                with st.form("signup_form"):
+                    username = st.text_input("Username")
+                    password = st.text_input("Password", type="password")
+                    confirm_password = st.text_input("Confirm Password", type="password")
+                    full_name = st.text_input("Full Name")
+                    role = st.selectbox("Role", ["analyst", "supervisor"])
+                    
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        submitted = st.form_submit_button("Create Account", use_container_width=True)
+                    
+                    if submitted:
+                        if not username or not password or not confirm_password or not full_name:
+                            st.error("All fields are required")
+                        elif password != confirm_password:
+                            st.error("Passwords do not match")
+                        else:
+                            success, message = create_user(username, password, full_name, role)
+                            if success:
+                                st.success(message)
+                                # Log in the user automatically
+                                st.session_state.user_info = {
+                                    "username": username,
+                                    "full_name": full_name,
+                                    "role": role
+                                }
+                                st.session_state.show_signup = False
+                                st.rerun()
+                            else:
+                                st.error(message)
+                
+                st.markdown("<div style='text-align: center; margin-top: 15px;'>Already have an account?</div>", unsafe_allow_html=True)
+                
+                # Center the login button
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col2:
+                    if st.button("Log In", use_container_width=True):
                         st.session_state.show_signup = False
                         st.rerun()
-                    else:
-                        st.error(message)
-        
-        st.write("Already have an account?")
-        if st.button("Log In"):
-            st.session_state.show_signup = False
-            st.rerun()
     
     return False
 
