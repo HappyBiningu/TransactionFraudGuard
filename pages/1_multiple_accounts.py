@@ -19,11 +19,12 @@ PAGE_SIZE = 50
 # Set page config
 st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", layout="wide", menu_items=None)
 
-# Render sidebar navigation
-render_sidebar()
-
 # Apply custom theme
 apply_custom_theme()
+
+# Render top navigation
+from top_navigation import render_top_navigation
+render_top_navigation()
 
 # Apply authentication
 @require_auth

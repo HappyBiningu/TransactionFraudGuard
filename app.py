@@ -117,10 +117,13 @@ def get_system_users():
 # Check if user is logged in
 is_authenticated = login_page()
 
-# Only render sidebar if user is authenticated
+# Only render navigation if user is authenticated
 if is_authenticated:
-    # Render sidebar navigation
-    render_sidebar()
+    # Apply theme
+    apply_custom_theme()
+    
+    # Render top navigation instead of sidebar
+    render_top_navigation()
     
     # Custom CSS for modern styling with a more sophisticated design
     st.markdown("""

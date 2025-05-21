@@ -34,11 +34,12 @@ st.set_page_config(
     menu_items=None
 )
 
-# Render sidebar navigation
-render_sidebar()
-
 # Apply custom theme
 apply_custom_theme()
+
+# Render top navigation
+from top_navigation import render_top_navigation
+render_top_navigation()
 
 # Database functions
 def create_connection():
