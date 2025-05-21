@@ -490,6 +490,9 @@ if is_authenticated:
         unique_individuals = fetch_metric(DBS["Accounts Analysis"], "SELECT COUNT(DISTINCT individual_id) FROM transactions")
         total_amt = fetch_metric(DBS["Accounts Analysis"], "SELECT SUM(amount) FROM transactions")
         
+        # Format the total amount correctly
+        formatted_amount = f"${total_amt:,.2f}" if isinstance(total_amt, (int, float)) else "$0.00"
+        
         st.markdown(f"""
         <div class="metric-card metric-card-accounts">
             <div class="metric-icon">
@@ -504,7 +507,7 @@ if is_authenticated:
             <div class="metric-label">Unique Individuals</div>
             <div class="metric-value metric-value-accounts">{unique_individuals:,}</div>
             <div class="metric-label">Total Amount</div>
-            <div class="metric-value metric-value-accounts">${float(total_amt):,.2f if isinstance(total_amt, (int, float)) else 0}</div>
+            <div class="metric-value metric-value-accounts">{formatted_amount}</div>
         </div>
         """, unsafe_allow_html=True)
     
