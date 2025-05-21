@@ -1774,8 +1774,10 @@ if is_authenticated:
                         'font': {'size': 22, 'color': '#1E40AF'}
                     },
                     xaxis=dict(
-                        title='Number of Banks per Individual',
-                        titlefont=dict(size=14),
+                        title=dict(
+                            text='Number of Banks per Individual',
+                            font=dict(size=14)
+                        ),
                         showgrid=False,
                         showline=True,
                         linecolor='rgba(230,230,230,0.8)',
@@ -1785,8 +1787,10 @@ if is_authenticated:
                         ticktext=[f"{x} Banks" for x in accounts_grouped['Number of Banks']]
                     ),
                     yaxis=dict(
-                        title='Count of Individuals',
-                        titlefont=dict(size=14),
+                        title=dict(
+                            text='Count of Individuals',
+                            font=dict(size=14)
+                        ),
                         showgrid=True,
                         gridcolor='rgba(230,230,230,0.4)',
                         showline=True,
