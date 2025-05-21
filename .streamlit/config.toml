@@ -9,3 +9,10 @@ backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F5F5F5"
 textColor = "#212121"
 font = "sans serif"
+
+[browser]
+# Disable the default navigation to use our custom one
+gatherUsageStats = false
+
+[ui]
+hideTopBar = true
