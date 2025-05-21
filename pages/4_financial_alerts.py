@@ -1,607 +1,503 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import sys
+import os
+import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-import logging
-import os
+import random
+import io
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    filename='app.log'
-)
-logger = logging.getLogger(__name__)
+# Add the root directory to the path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from auth import require_auth
+from sidebar import render_sidebar
 
 # Constants
 DB_FILE = "financial_alerts.db"
-ALERTS_TABLE = "alerts"
-ALERT_TYPES_TABLE = "alert_types"
-ALERT_RULES_TABLE = "alert_rules"
-ALERT_ACTIONS_TABLE = "alert_actions"
-PAGE_SIZE = 20
+TABLES = [
+    "daily_balance_alerts",
+    "large_transaction_alerts",
+    "pattern_deviation_alerts",
+    "account_status_alerts"
+]
 
 # Page configuration
 st.set_page_config(
     page_title="Financial Alerts",
-    page_icon="🚨",
+    page_icon="🔔",
     layout="wide"
 )
 
-# Database helper functions
-def get_db_connection():
-    """Create a database connection to the SQLite database"""
-    try:
-        conn = sqlite3.connect(DB_FILE)
-        conn.row_factory = sqlite3.Row  # Enable row factory for named columns
-        return conn
-    except Exception as e:
-        logger.error(f"Error connecting to database: {e}")
-        st.error(f"Error connecting to database: {e}")
-        return None
-
-def check_database_exists():
-    """Check if the alerts database exists"""
-    return os.path.exists(DB_FILE)
-
-def get_alert_counts_by_type():
-    """Get alert counts grouped by type"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = """
-                SELECT alert_type, COUNT(*) as count
-                FROM alerts
-                GROUP BY alert_type
-                ORDER BY count DESC
-            """
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            return df
-        except Exception as e:
-            logger.error(f"Error getting alert counts by type: {e}")
-            st.error(f"Error getting alert counts by type: {e}")
-            conn.close()
-    return pd.DataFrame(columns=['alert_type', 'count'])
-
-def get_alert_counts_by_severity():
-    """Get alert counts grouped by severity"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = """
-                SELECT severity, COUNT(*) as count
-                FROM alerts
-                GROUP BY severity
-                ORDER BY CASE 
-                    WHEN severity = 'critical' THEN 1 
-                    WHEN severity = 'high' THEN 2 
-                    WHEN severity = 'medium' THEN 3 
-                    WHEN severity = 'low' THEN 4 
-                END
-            """
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            return df
-        except Exception as e:
-            logger.error(f"Error getting alert counts by severity: {e}")
-            st.error(f"Error getting alert counts by severity: {e}")
-            conn.close()
-    return pd.DataFrame(columns=['severity', 'count'])
-
-def get_alert_counts_by_status():
-    """Get alert counts grouped by status"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = """
-                SELECT status, COUNT(*) as count
-                FROM alerts
-                GROUP BY status
-                ORDER BY CASE 
-                    WHEN status = 'new' THEN 1 
-                    WHEN status = 'in_progress' THEN 2 
-                    WHEN status = 'resolved' THEN 3 
-                    WHEN status = 'false_positive' THEN 4 
-                END
-            """
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            return df
-        except Exception as e:
-            logger.error(f"Error getting alert counts by status: {e}")
-            st.error(f"Error getting alert counts by status: {e}")
-            conn.close()
-    return pd.DataFrame(columns=['status', 'count'])
-
-def get_alerts_over_time():
-    """Get alert counts over time"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = """
-                SELECT date(created_at) as alert_date, COUNT(*) as count
-                FROM alerts
-                GROUP BY date(created_at)
-                ORDER BY date(created_at)
-            """
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            return df
-        except Exception as e:
-            logger.error(f"Error getting alerts over time: {e}")
-            st.error(f"Error getting alerts over time: {e}")
-            conn.close()
-    return pd.DataFrame(columns=['alert_date', 'count'])
-
-def get_alert_rules():
-    """Get all alert rules"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = """
-                SELECT r.id, r.rule_name, r.alert_type, r.description, r.rule_criteria, 
-                       r.enabled, r.created_at, t.default_severity
-                FROM alert_rules r
-                JOIN alert_types t ON r.alert_type = t.type_name
-                ORDER BY r.id
-            """
-            df = pd.read_sql_query(query, conn)
-            conn.close()
-            return df
-        except Exception as e:
-            logger.error(f"Error getting alert rules: {e}")
-            st.error(f"Error getting alert rules: {e}")
-            conn.close()
-    return pd.DataFrame()
-
-def get_paginated_alerts(page, status_filter=None, severity_filter=None, days_back=None):
-    """Get a page of alerts with optional filters"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = f"SELECT * FROM {ALERTS_TABLE}"
-            params = []
-            where_clauses = []
-            
-            # Apply filters
-            if status_filter:
-                where_clauses.append("status = ?")
-                params.append(status_filter)
-            
-            if severity_filter:
-                where_clauses.append("severity = ?")
-                params.append(severity_filter)
-            
-            if days_back:
-                cutoff_date = (datetime.now() - timedelta(days=days_back)).strftime("%Y-%m-%d")
-                where_clauses.append("date(created_at) >= ?")
-                params.append(cutoff_date)
-            
-            # Combine all WHERE clauses
-            if where_clauses:
-                query += " WHERE " + " AND ".join(where_clauses)
-            
-            # Get total count for pagination
-            count_query = f"SELECT COUNT(*) as count FROM ({query})"
-            count_result = conn.execute(count_query, params).fetchone()
-            total_records = count_result['count'] if count_result else 0
-            total_pages = (total_records + PAGE_SIZE - 1) // PAGE_SIZE if total_records > 0 else 1
-            
-            # Add pagination and ordering
-            query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-            params.extend([PAGE_SIZE, page * PAGE_SIZE])
-            
-            # Execute query
-            df = pd.read_sql_query(query, conn, params=params)
-            conn.close()
-            
-            return df, total_pages, total_records
-        except Exception as e:
-            logger.error(f"Error getting paginated alerts: {e}")
-            st.error(f"Error getting paginated alerts: {e}")
-            if conn:
-                conn.close()
-    return pd.DataFrame(), 0, 0
-
-def get_alert_details(alert_id):
-    """Get detailed information about a specific alert"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            # Get alert details
-            alert_query = f"SELECT * FROM {ALERTS_TABLE} WHERE id = ?"
-            alert = conn.execute(alert_query, (alert_id,)).fetchone()
-            
-            if not alert:
-                conn.close()
-                return None, None
-            
-            # Get actions for this alert
-            actions_query = f"""
-                SELECT * FROM {ALERT_ACTIONS_TABLE} 
-                WHERE alert_id = ? 
-                ORDER BY performed_at DESC
-            """
-            actions_df = pd.read_sql_query(actions_query, conn, params=(alert_id,))
-            
-            conn.close()
-            return dict(alert), actions_df
-        except Exception as e:
-            logger.error(f"Error getting alert details: {e}")
-            st.error(f"Error getting alert details: {e}")
-            if conn:
-                conn.close()
-    return None, None
-
-def update_alert_status(alert_id, new_status, performed_by, action_details):
-    """Update the status of an alert and add an action record"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            # Update alert status
-            update_query = f"""
-                UPDATE {ALERTS_TABLE} 
-                SET status = ?, updated_at = CURRENT_TIMESTAMP, assigned_to = ?
-                WHERE id = ?
-            """
-            conn.execute(update_query, (new_status, performed_by, alert_id))
-            
-            # Add action record
-            action_type = 'status_change'
-            action_query = f"""
-                INSERT INTO {ALERT_ACTIONS_TABLE} (
-                    alert_id, action_type, action_details, performed_by
-                ) VALUES (?, ?, ?, ?)
-            """
-            conn.execute(action_query, (alert_id, action_type, action_details, performed_by))
-            
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            logger.error(f"Error updating alert status: {e}")
-            st.error(f"Error updating alert status: {e}")
-            if conn:
-                conn.rollback()
-                conn.close()
-    return False
-
-def add_alert_action(alert_id, action_type, action_details, performed_by):
-    """Add a new action record for an alert"""
-    conn = get_db_connection()
-    if conn:
-        try:
-            query = f"""
-                INSERT INTO {ALERT_ACTIONS_TABLE} (
-                    alert_id, action_type, action_details, performed_by
-                ) VALUES (?, ?, ?, ?)
-            """
-            conn.execute(query, (alert_id, action_type, action_details, performed_by))
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            logger.error(f"Error adding alert action: {e}")
-            st.error(f"Error adding alert action: {e}")
-            if conn:
-                conn.rollback()
-                conn.close()
-    return False
-
-# UI Components
-def render_alert_dashboard():
-    """Render the dashboard view with alert statistics"""
-    st.subheader("📊 Alert Statistics")
+# Initialize the database
+def init_database():
+    """Initialize the database with necessary tables if they don't exist"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
     
-    # Get alert statistics
-    alerts_by_type = get_alert_counts_by_type()
-    alerts_by_severity = get_alert_counts_by_severity()
-    alerts_by_status = get_alert_counts_by_status()
-    alerts_over_time = get_alerts_over_time()
+    # Create tables
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS daily_balance_alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        account_id TEXT,
+        alert_type TEXT,
+        amount REAL,
+        threshold REAL,
+        status TEXT,
+        description TEXT
+    )
+    ''')
     
-    # Convert alert_date to datetime for better plotting
-    if not alerts_over_time.empty:
-        alerts_over_time['alert_date'] = pd.to_datetime(alerts_over_time['alert_date'])
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS large_transaction_alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        account_id TEXT,
+        transaction_id TEXT,
+        amount REAL,
+        threshold REAL,
+        status TEXT,
+        description TEXT
+    )
+    ''')
     
-    col1, col2 = st.columns(2)
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS pattern_deviation_alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        account_id TEXT,
+        deviation_type TEXT,
+        severity TEXT,
+        status TEXT,
+        description TEXT
+    )
+    ''')
     
-    with col1:
-        # Alert types pie chart
-        if not alerts_by_type.empty:
-            fig_type = px.pie(
-                alerts_by_type, 
-                values='count', 
-                names='alert_type', 
-                title='Alerts by Type',
-                hole=0.4,
-                color_discrete_sequence=px.colors.qualitative.Bold
-            )
-            fig_type.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig_type, use_container_width=True)
-        else:
-            st.info("No alert type data available")
-        
-        # Alerts over time line chart
-        if not alerts_over_time.empty:
-            fig_time = px.line(
-                alerts_over_time, 
-                x='alert_date', 
-                y='count',
-                title='Alerts Over Time',
-                markers=True
-            )
-            fig_time.update_layout(xaxis_title="Date", yaxis_title="Number of Alerts")
-            st.plotly_chart(fig_time, use_container_width=True)
-        else:
-            st.info("No time series data available")
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS account_status_alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        account_id TEXT,
+        previous_status TEXT,
+        new_status TEXT,
+        reason TEXT,
+        status TEXT,
+        description TEXT
+    )
+    ''')
     
-    with col2:
-        # Alert severity bar chart
-        if not alerts_by_severity.empty:
-            # Define custom color mapping for severity
-            severity_colors = {
-                'low': 'green',
-                'medium': 'orange',
-                'high': 'red',
-                'critical': 'darkred'
+    # Create test data if the tables are empty
+    for table in TABLES:
+        cursor.execute(f"SELECT COUNT(*) FROM {table}")
+        count = cursor.fetchone()[0]
+        if count == 0:
+            generate_test_data(conn, table)
+    
+    conn.commit()
+    conn.close()
+
+def generate_test_data(conn, table_name):
+    """Generate test data for the specified table"""
+    cursor = conn.cursor()
+    
+    # Generate 20-50 records per table
+    num_records = random.randint(20, 50)
+    
+    if table_name == "daily_balance_alerts":
+        for _ in range(num_records):
+            # Generate a random date within the last 90 days
+            days_ago = random.randint(0, 90)
+            alert_date = (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            account_id = f"ACC-{random.randint(10000, 99999)}"
+            alert_type = random.choice(["LOW_BALANCE", "BALANCE_DECLINE", "UNUSUAL_DEPOSIT"])
+            amount = round(random.uniform(100, 10000), 2)
+            threshold = round(random.uniform(100, 5000), 2)
+            status = random.choice(["NEW", "REVIEWING", "RESOLVED", "CLOSED"])
+            
+            if alert_type == "LOW_BALANCE":
+                description = f"Account balance ${amount:.2f} below threshold ${threshold:.2f}"
+            elif alert_type == "BALANCE_DECLINE":
+                description = f"Account balance declined by ${amount:.2f} in last 24 hours"
+            else:
+                description = f"Unusual deposit of ${amount:.2f} detected"
+                
+            cursor.execute('''
+            INSERT INTO daily_balance_alerts (timestamp, account_id, alert_type, amount, threshold, status, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (alert_date, account_id, alert_type, amount, threshold, status, description))
+            
+    elif table_name == "large_transaction_alerts":
+        for _ in range(num_records):
+            days_ago = random.randint(0, 90)
+            alert_date = (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            account_id = f"ACC-{random.randint(10000, 99999)}"
+            transaction_id = f"TXN-{random.randint(100000, 999999)}"
+            amount = round(random.uniform(5000, 50000), 2)
+            threshold = round(random.uniform(5000, 20000), 2)
+            status = random.choice(["NEW", "INVESTIGATING", "CONFIRMED", "FALSE_ALARM"])
+            description = f"Large transaction of ${amount:.2f} exceeds threshold of ${threshold:.2f}"
+                
+            cursor.execute('''
+            INSERT INTO large_transaction_alerts (timestamp, account_id, transaction_id, amount, threshold, status, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (alert_date, account_id, transaction_id, amount, threshold, status, description))
+            
+    elif table_name == "pattern_deviation_alerts":
+        for _ in range(num_records):
+            days_ago = random.randint(0, 90)
+            alert_date = (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            account_id = f"ACC-{random.randint(10000, 99999)}"
+            deviation_type = random.choice(["SPENDING_PATTERN", "LOCATION", "TIME_OF_DAY", "FREQUENCY"])
+            severity = random.choice(["LOW", "MEDIUM", "HIGH", "CRITICAL"])
+            status = random.choice(["NEW", "UNDER_REVIEW", "CONFIRMED", "DISMISSED"])
+            
+            if deviation_type == "SPENDING_PATTERN":
+                description = "Unusual spending pattern detected across multiple categories"
+            elif deviation_type == "LOCATION":
+                description = "Transactions from unusual geographic locations"
+            elif deviation_type == "TIME_OF_DAY":
+                description = "Transactions occurring at unusual times"
+            else:
+                description = "Unusual frequency of transactions"
+                
+            cursor.execute('''
+            INSERT INTO pattern_deviation_alerts (timestamp, account_id, deviation_type, severity, status, description)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''', (alert_date, account_id, deviation_type, severity, status, description))
+            
+    elif table_name == "account_status_alerts":
+        for _ in range(num_records):
+            days_ago = random.randint(0, 90)
+            alert_date = (datetime.now() - timedelta(days=days_ago)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            account_id = f"ACC-{random.randint(10000, 99999)}"
+            previous_status = random.choice(["ACTIVE", "DORMANT", "RESTRICTED", "ON_HOLD"])
+            
+            # Ensure new status is different
+            statuses = ["ACTIVE", "DORMANT", "RESTRICTED", "ON_HOLD", "CLOSED"]
+            statuses.remove(previous_status)
+            new_status = random.choice(statuses)
+            
+            reasons = {
+                "ACTIVE": ["Customer request", "Hold period expired", "Restrictions lifted"],
+                "DORMANT": ["Inactivity", "Low balance", "Automatic system flag"],
+                "RESTRICTED": ["Suspicious activity", "Legal order", "Bank policy violation"],
+                "ON_HOLD": ["Pending investigation", "Temporary freeze", "Account verification"],
+                "CLOSED": ["Customer request", "Bank decision", "Account merger"]
             }
             
-            fig_severity = px.bar(
-                alerts_by_severity,
-                x='severity',
-                y='count',
-                title='Alerts by Severity',
-                color='severity',
-                color_discrete_map=severity_colors
-            )
-            fig_severity.update_layout(xaxis_title="Severity", yaxis_title="Number of Alerts")
-            st.plotly_chart(fig_severity, use_container_width=True)
-        else:
-            st.info("No severity data available")
-        
-        # Alert status bar chart
-        if not alerts_by_status.empty:
-            # Define custom color mapping for status
-            status_colors = {
-                'new': 'blue',
-                'in_progress': 'orange',
-                'resolved': 'green',
-                'false_positive': 'gray'
-            }
-            
-            fig_status = px.bar(
-                alerts_by_status,
-                x='status',
-                y='count',
-                title='Alerts by Status',
-                color='status',
-                color_discrete_map=status_colors
-            )
-            fig_status.update_layout(xaxis_title="Status", yaxis_title="Number of Alerts")
-            st.plotly_chart(fig_status, use_container_width=True)
-        else:
-            st.info("No status data available")
+            reason = random.choice(reasons.get(new_status, ["System update"]))
+            status = random.choice(["NEW", "NOTIFIED", "ACKNOWLEDGED", "RESOLVED"])
+            description = f"Account status changed from {previous_status} to {new_status} due to: {reason}"
+                
+            cursor.execute('''
+            INSERT INTO account_status_alerts (timestamp, account_id, previous_status, new_status, reason, status, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (alert_date, account_id, previous_status, new_status, reason, status, description))
 
-def render_alert_list():
-    """Render the alert list with filters"""
-    st.subheader("🔍 Alert List")
+def get_alerts_by_type(alert_type, status_filter=None, date_range=None, limit=100):
+    """Get alerts from database by type with optional filters"""
+    conn = sqlite3.connect(DB_FILE)
     
-    # Filters
+    # Build the query with dynamic filtering
+    query = f"SELECT * FROM {alert_type}"
+    params = []
+    
+    # Apply filters
+    conditions = []
+    
+    if status_filter and status_filter.lower() != "all":
+        conditions.append("status = ?")
+        params.append(status_filter)
+    
+    if date_range:
+        if isinstance(date_range, list) and len(date_range) == 2:
+            start_date, end_date = date_range
+            if start_date and end_date:
+                # Format dates for SQLite
+                start_date_str = start_date.strftime('%Y-%m-%d')
+                # Add one day to end_date to include the full day
+                end_date_str = (end_date + timedelta(days=1)).strftime('%Y-%m-%d')
+                
+                conditions.append("timestamp BETWEEN ? AND ?")
+                params.extend([start_date_str, end_date_str])
+    
+    # Add WHERE clause if we have any conditions
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+    
+    # Add limit and order
+    query += f" ORDER BY timestamp DESC LIMIT {limit}"
+    
+    # Execute the query
+    df = pd.read_sql_query(query, conn, params=params)
+    conn.close()
+    
+    return df
+
+def update_alert_status(table, alert_id, new_status):
+    """Update the status of an alert"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        f"UPDATE {table} SET status = ? WHERE id = ?",
+        (new_status, alert_id)
+    )
+    
+    conn.commit()
+    conn.close()
+    return True
+
+def get_alert_counts():
+    """Get counts of alerts by type and status"""
+    conn = sqlite3.connect(DB_FILE)
+    result = {}
+    
+    # Get counts for each table
+    for table in TABLES:
+        cursor = conn.cursor()
+        # Total count
+        cursor.execute(f"SELECT COUNT(*) FROM {table}")
+        total = cursor.fetchone()[0]
+        
+        # Count by status
+        cursor.execute(f"SELECT status, COUNT(*) FROM {table} GROUP BY status")
+        status_counts = dict(cursor.fetchall())
+        
+        result[table] = {
+            'total': total,
+            'status': status_counts
+        }
+    
+    conn.close()
+    return result
+
+def export_to_csv(df, filename):
+    """Export dataframe to CSV"""
+    csv = df.to_csv(index=False)
+    return csv.encode('utf-8')
+
+@require_auth
+def main():
+    """Main function to render the Financial Alerts page"""
+    # Render sidebar navigation
+    render_sidebar()
+    
+    # Initialize database
+    init_database()
+    
+    st.title("🔔 Financial Alerts")
+    
+    # Get alert counts
+    alert_counts = get_alert_counts()
+    
+    # Dashboard Overview Cards
+    st.subheader("Alert Overview")
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        status_filter = st.selectbox(
-            "Status",
-            options=[None, "new", "in_progress", "resolved", "false_positive"],
-            format_func=lambda x: "All" if x is None else x.replace('_', ' ').title()
+        daily_balance_total = alert_counts['daily_balance_alerts']['total']
+        new_daily_balance = alert_counts['daily_balance_alerts']['status'].get('NEW', 0)
+        st.metric(
+            label="Balance Alerts", 
+            value=daily_balance_total,
+            delta=f"{new_daily_balance} new"
         )
     
     with col2:
-        severity_filter = st.selectbox(
-            "Severity",
-            options=[None, "low", "medium", "high", "critical"],
-            format_func=lambda x: "All" if x is None else x.title()
+        large_tx_total = alert_counts['large_transaction_alerts']['total']
+        new_large_tx = alert_counts['large_transaction_alerts']['status'].get('NEW', 0)
+        st.metric(
+            label="Large Transaction Alerts", 
+            value=large_tx_total,
+            delta=f"{new_large_tx} new"
         )
     
     with col3:
-        days_back = st.selectbox(
-            "Time Period",
-            options=[None, 7, 14, 30, 90],
-            format_func=lambda x: "All Time" if x is None else f"Last {x} days"
+        pattern_total = alert_counts['pattern_deviation_alerts']['total']
+        new_pattern = alert_counts['pattern_deviation_alerts']['status'].get('NEW', 0)
+        st.metric(
+            label="Pattern Deviation Alerts", 
+            value=pattern_total,
+            delta=f"{new_pattern} new"
         )
     
     with col4:
-        refresh = st.button("Refresh Data")
+        status_total = alert_counts['account_status_alerts']['total']
+        new_status = alert_counts['account_status_alerts']['status'].get('NEW', 0)
+        st.metric(
+            label="Status Change Alerts", 
+            value=status_total,
+            delta=f"{new_status} new"
+        )
     
-    # Get paginated data
-    # Initialize page number in session state if not present
-    if 'alert_page' not in st.session_state:
-        st.session_state.alert_page = 0
+    # Alerts by Status Chart
+    st.subheader("Alerts by Status")
     
-    alerts_df, total_pages, total_records = get_paginated_alerts(
-        st.session_state.alert_page,
-        status_filter,
-        severity_filter,
-        days_back
+    # Prepare data for the chart
+    statuses = set()
+    chart_data = []
+    
+    for table, data in alert_counts.items():
+        # Convert table name to display name
+        display_name = " ".join(table.split('_')[:-1]).title()
+        
+        for status, count in data['status'].items():
+            statuses.add(status)
+            chart_data.append({
+                'Alert Type': display_name,
+                'Status': status,
+                'Count': count
+            })
+    
+    if chart_data:
+        chart_df = pd.DataFrame(chart_data)
+        
+        # Create a grouped bar chart
+        fig = px.bar(
+            chart_df, 
+            x='Alert Type', 
+            y='Count', 
+            color='Status',
+            title='Alert Distribution by Status',
+            barmode='group'
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No alert data available for visualization.")
+    
+    # Alert Management Section
+    st.markdown("---")
+    st.subheader("Alert Management")
+    
+    # Select alert type
+    alert_type_mapping = {
+        "Balance Alerts": "daily_balance_alerts",
+        "Large Transaction Alerts": "large_transaction_alerts",
+        "Pattern Deviation Alerts": "pattern_deviation_alerts",
+        "Status Change Alerts": "account_status_alerts"
+    }
+    
+    selected_alert_type = st.selectbox(
+        "Select Alert Type",
+        options=list(alert_type_mapping.keys())
     )
     
-    # Display results
-    if not alerts_df.empty:
-        # Format the dataframe for display
-        display_df = alerts_df.copy()
+    db_table = alert_type_mapping[selected_alert_type]
+    
+    # Filters
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        status_options = ["All", "NEW", "REVIEWING", "INVESTIGATING", "RESOLVED", 
+                          "CLOSED", "CONFIRMED", "FALSE_ALARM", "UNDER_REVIEW", "DISMISSED", "NOTIFIED", "ACKNOWLEDGED"]
+        status_filter = st.selectbox("Filter by Status", status_options)
+    
+    with col2:
+        default_start_date = datetime.now() - timedelta(days=30)
+        default_end_date = datetime.now()
+        date_range = st.date_input(
+            "Date Range",
+            value=[default_start_date.date(), default_end_date.date()],
+            max_value=datetime.now().date()
+        )
+    
+    with col3:
+        limit = st.number_input("Limit Results", min_value=10, max_value=1000, value=100, step=10)
         
-        # Convert timestamps to more readable format
-        display_df['created_at'] = pd.to_datetime(display_df['created_at']).dt.strftime('%Y-%m-%d %H:%M')
-        display_df['updated_at'] = pd.to_datetime(display_df['updated_at']).dt.strftime('%Y-%m-%d %H:%M')
+        st.write("")  # Spacer
+        if st.button("Export to CSV", key="export_button"):
+            df = get_alerts_by_type(db_table, 
+                                  status_filter if status_filter != "All" else None, 
+                                  date_range, 
+                                  limit)
+            if not df.empty:
+                csv_data = export_to_csv(df, f"{db_table}.csv")
+                st.download_button(
+                    label="Download CSV",
+                    data=csv_data,
+                    file_name=f"{db_table}_{datetime.now().strftime('%Y%m%d')}.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.error("No data to export.")
+    
+    # Get filtered alerts
+    df = get_alerts_by_type(db_table, 
+                          status_filter if status_filter != "All" else None, 
+                          date_range, 
+                          limit)
+    
+    if not df.empty:
+        # Process dataframe for display
+        status_colors = {
+            "NEW": "🔴 New",
+            "REVIEWING": "🟠 Reviewing",
+            "INVESTIGATING": "🟠 Investigating",
+            "UNDER_REVIEW": "🟠 Under Review",
+            "RESOLVED": "🟢 Resolved",
+            "CLOSED": "⚪ Closed",
+            "CONFIRMED": "🟡 Confirmed",
+            "FALSE_ALARM": "⚪ False Alarm",
+            "DISMISSED": "⚪ Dismissed",
+            "NOTIFIED": "🟡 Notified",
+            "ACKNOWLEDGED": "🟢 Acknowledged"
+        }
         
-        # Select columns to display
-        display_df = display_df[['id', 'alert_type', 'severity', 'status', 'description', 'created_at']]
+        # Replace status codes with colored text
+        df_display = df.copy()
+        df_display['status'] = df_display['status'].map(lambda x: status_colors.get(x, x))
+        
+        # Format timestamp
+        df_display['timestamp'] = pd.to_datetime(df_display['timestamp']).dt.strftime('%Y-%m-%d %H:%M')
         
         # Rename columns for better display
-        display_df.columns = ['ID', 'Alert Type', 'Severity', 'Status', 'Description', 'Created At']
+        column_map = {col: col.replace('_', ' ').title() for col in df_display.columns}
+        df_display = df_display.rename(columns=column_map)
         
-        # Apply custom styling
-        def highlight_severity(val):
-            if val == 'critical':
-                return 'background-color: #ffcccc; font-weight: bold'
-            elif val == 'high':
-                return 'background-color: #ffe6cc'
-            elif val == 'medium':
-                return 'background-color: #ffffcc'
-            return ''
+        # Show the table
+        st.dataframe(df_display, use_container_width=True)
         
-        def highlight_status(val):
-            if val == 'new':
-                return 'background-color: #cce5ff'
-            elif val == 'in_progress':
-                return 'background-color: #fff2cc'
-            elif val == 'resolved':
-                return 'background-color: #d9ead3'
-            return ''
+        # Interactive Alert Management
+        st.subheader("Update Alert Status")
         
-        # Display dataframe
-        st.dataframe(display_df, use_container_width=True)
-        
-        # Pagination controls
-        col1, col2, col3 = st.columns([1, 2, 1])
+        col1, col2 = st.columns(2)
         
         with col1:
-            if st.session_state.alert_page > 0:
-                if st.button("Previous Page"):
-                    st.session_state.alert_page -= 1
-                    st.rerun()
+            # Select an alert to update
+            selected_alert_id = st.selectbox(
+                "Select Alert by ID",
+                options=df['id'].tolist(),
+                format_func=lambda x: f"Alert #{x}"
+            )
         
         with col2:
-            st.write(f"Page {st.session_state.alert_page + 1} of {total_pages} (Total Records: {total_records})")
+            # Choose new status
+            new_status = st.selectbox(
+                "New Status",
+                options=["REVIEWING", "INVESTIGATING", "UNDER_REVIEW", "RESOLVED", "CLOSED", 
+                         "CONFIRMED", "FALSE_ALARM", "DISMISSED", "NOTIFIED", "ACKNOWLEDGED"]
+            )
         
-        with col3:
-            if st.session_state.alert_page < total_pages - 1:
-                if st.button("Next Page"):
-                    st.session_state.alert_page += 1
-                    st.rerun()
-        
-        # Alert details section
-        st.subheader("📋 Alert Details")
-        
-        alert_id = st.number_input("Enter Alert ID for details", min_value=1, step=1)
-        if st.button("View Details"):
-            alert, actions = get_alert_details(alert_id)
-            
-            if alert:
-                # Display alert information
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.write("**Alert Information**")
-                    st.write(f"**ID:** {alert['id']}")
-                    st.write(f"**Type:** {alert['alert_type']}")
-                    st.write(f"**Description:** {alert['description']}")
-                    st.write(f"**Status:** {alert['status']}")
-                    st.write(f"**Severity:** {alert['severity']}")
-                    st.write(f"**Individual ID:** {alert['individual_id']}")
-                    st.write(f"**Account ID:** {alert['account_id']}")
-                    
-                with col2:
-                    st.write("**Timeline**")
-                    st.write(f"**Created:** {alert['created_at']}")
-                    st.write(f"**Updated:** {alert['updated_at'] or 'Never'}")
-                    st.write(f"**Assigned To:** {alert['assigned_to'] or 'Unassigned'}")
-                    
-                    # Add action options if alert is not resolved
-                    if alert['status'] not in ['resolved', 'false_positive']:
-                        st.write("**Actions**")
-                        
-                        new_status = st.selectbox(
-                            "Change Status",
-                            options=["in_progress", "resolved", "false_positive"],
-                            format_func=lambda x: x.replace('_', ' ').title()
-                        )
-                        
-                        performed_by = st.text_input("Your Name/ID")
-                        action_details = st.text_area("Action Details/Notes")
-                        
-                        if st.button("Update Alert"):
-                            if performed_by and action_details:
-                                success = update_alert_status(
-                                    alert_id, 
-                                    new_status, 
-                                    performed_by, 
-                                    action_details
-                                )
-                                if success:
-                                    st.success("Alert updated successfully!")
-                                    st.rerun()
-                            else:
-                                st.error("Please fill in all fields")
-                
-                # Display action history
-                if not actions.empty:
-                    st.write("**Action History**")
-                    
-                    # Format action history for display
-                    actions['performed_at'] = pd.to_datetime(actions['performed_at']).dt.strftime('%Y-%m-%d %H:%M')
-                    actions = actions[['action_type', 'action_details', 'performed_by', 'performed_at']]
-                    actions.columns = ['Action Type', 'Details', 'Performed By', 'Timestamp']
-                    
-                    st.dataframe(actions, use_container_width=True)
-                else:
-                    st.write("No actions recorded for this alert.")
+        # Update button
+        if st.button("Update Status", key="update_status_button"):
+            success = update_alert_status(db_table, selected_alert_id, new_status)
+            if success:
+                st.success(f"Alert #{selected_alert_id} status updated to {new_status}")
+                # Refresh display
+                st.rerun()
             else:
-                st.error(f"Alert with ID {alert_id} not found")
+                st.error("Failed to update alert status")
     else:
-        st.info("No alerts found matching the selected criteria")
-
-def render_alert_rules():
-    """Render the alert rules page"""
-    st.subheader("⚙️ Alert Rules")
-    
-    rules_df = get_alert_rules()
-    
-    if not rules_df.empty:
-        # Format for display
-        display_df = rules_df.copy()
-        
-        # Convert timestamp
-        display_df['created_at'] = pd.to_datetime(display_df['created_at']).dt.strftime('%Y-%m-%d')
-        
-        # Format enabled column
-        display_df['enabled'] = display_df['enabled'].map({1: '✅ Enabled', 0: '❌ Disabled'})
-        
-        # Select and rename columns
-        display_df = display_df[['id', 'rule_name', 'alert_type', 'description', 'rule_criteria', 'default_severity', 'enabled']]
-        display_df.columns = ['ID', 'Rule Name', 'Alert Type', 'Description', 'Criteria', 'Default Severity', 'Status']
-        
-        st.dataframe(display_df, use_container_width=True)
-    else:
-        st.info("No alert rules defined")
-    
-    # Rule management section - simplified for demo
-    st.write("**Rule Management**")
-    st.info("In a production environment, this section would provide functionality to create, edit, and delete alert rules.")
-
-# Main application
-def main():
-    st.title("🚨 Financial Alerts System")
-    
-    # Check if database exists
-    if not check_database_exists():
-        st.error(f"Alert database not found. Please run the initialization script.")
-        return
-    
-    # Navigation tabs
-    tab1, tab2, tab3 = st.tabs(["Dashboard", "Alert List", "Alert Rules"])
-    
-    with tab1:
-        render_alert_dashboard()
-    
-    with tab2:
-        render_alert_list()
-    
-    with tab3:
-        render_alert_rules()
+        st.info("No alerts found with the selected filters.")
 
 if __name__ == "__main__":
     main()
