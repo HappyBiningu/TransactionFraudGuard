@@ -437,8 +437,10 @@ if 'transaction_limits' not in st.session_state:
     st.session_state.transaction_limits = get_settings_from_db()
 
 # Sidebar - Limit Settings
-with st.sidebar:
-    st.header("Transaction Limits")
+# Transaction limit controls - moved from sidebar to main content
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.subheader("Transaction Limits")
     st.session_state.transaction_limits['daily'] = st.number_input(
         "Daily Limit ($)",
         value=st.session_state.transaction_limits['daily'],
@@ -758,6 +760,6 @@ with tab4:
             st.info("No violations available for export.")
 
 # System status info
-st.sidebar.markdown("---")
-st.sidebar.caption(f"Database: {DB_FILE}")
-st.sidebar.caption(f"Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+# Database info moved to main content footer
+st.markdown("---")
+st.caption(f"Database: {DB_FILE} | Last Updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}")

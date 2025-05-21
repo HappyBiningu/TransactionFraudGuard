@@ -140,12 +140,7 @@ def login_page():
     if "show_signup" not in st.session_state:
         st.session_state.show_signup = False
     
-    # Logout button in sidebar (profile info is handled by sidebar.py)
-    with st.sidebar:
-        if st.session_state.user_info:
-            if st.sidebar.button("Logout", key="sidebar_logout", use_container_width=True):
-                st.session_state.user_info = None
-                st.rerun()
+    # Logout button is now handled in sidebar.py
     
     if st.session_state.user_info:
         # Already logged in
