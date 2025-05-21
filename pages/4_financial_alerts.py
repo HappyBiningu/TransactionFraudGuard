@@ -12,7 +12,7 @@ import io
 # Add the root directory to the path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from auth import require_auth
-from sidebar import render_sidebar
+from top_navigation import render_top_navigation
 from theme_utils import apply_custom_theme
 import enhanced_financial_alerts as efa
 
@@ -33,12 +33,16 @@ st.set_page_config(
     menu_items=None
 )
 
+# Apply custom theme outside main function
+apply_custom_theme()
+
+# Render top navigation outside main function
+render_top_navigation()
+
 # Apply authentication decorator
 @require_auth
 def main():
     """Main function to render the Financial Alerts page"""
-    # Render sidebar navigation
-    render_sidebar()
     
     # Initialize database and generate alerts from real data
     efa.init_alerts_database()
