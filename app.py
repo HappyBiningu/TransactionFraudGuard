@@ -36,11 +36,11 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
 # Page layout
 st.set_page_config(page_title="📊 Unified Financial Dashboard", layout="wide")
 
-# Render sidebar navigation
-render_sidebar()
-
 # Check if user is logged in
 is_authenticated = login_page()
+
+# Render sidebar navigation
+render_sidebar()
 
 if is_authenticated:
     st.title("📊 Unified Financial Intelligence Dashboard")
