@@ -32,11 +32,28 @@ def fetch_date_range(db_file, table, date_column="timestamp"):
     except:
         return None, None
 
-# Page config
+# Page config with no sidebar
 st.set_page_config(
     page_title="Financial Intelligence Platform", 
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="collapsed"
 )
+
+# Hide all navigation elements via CSS
+hide_all_navigation = """
+<style>
+    [data-testid="collapsedControl"] {display: none !important;}
+    section[data-testid="stSidebar"] {display: none !important;}
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+    div[data-testid="stSidebarNav"] {display: none !important;}
+    div[data-testid="baseButton-headerNoPadding"] {display: none !important;}
+    button[kind="header"] {display: none !important;}
+    ul[data-testid="stSidebarNavItems"] {display: none !important;}
+</style>
+"""
+st.markdown(hide_all_navigation, unsafe_allow_html=True)
 
 # Check if user is logged in
 is_authenticated = login_page()

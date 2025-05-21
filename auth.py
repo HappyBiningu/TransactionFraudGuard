@@ -134,29 +134,37 @@ def login_page():
     """Render the login page"""
     init_auth_database()
     
-    # Create a clean login page
-    st.title("Financial Intelligence Platform")
-    st.markdown("### Secure login to access financial monitoring tools")
-    
-    # Simpler CSS that only targets navigation elements but keeps content visible
+    # Hide the sidebar and all navigation
     hide_sidebar_style = """
         <style>
-            /* Hide navigation */
             [data-testid="collapsedControl"] {display: none !important;}
             section[data-testid="stSidebar"] {display: none !important;}
             #MainMenu {visibility: hidden !important;}
             footer {visibility: hidden !important;}
             header {visibility: hidden !important;}
-            div[data-testid="stSidebarNav"] {display: none !important;}
-            button[data-testid="baseButton-secondary"] {display: none !important;}
-            .stNavigationContainer {display: none !important;}
-            
-            /* Keep main content visible and centered */
             .block-container {
                 padding-top: 2rem;
                 max-width: 800px;
                 margin: 0 auto;
             }
+            div[data-testid="stSidebarNav"] {display: none !important;}
+            div[data-testid="baseButton-headerNoPadding"] {display: none !important;}
+            button[kind="header"] {display: none !important;}
+            ul[data-testid="stSidebarNavItems"] {display: none !important;}
+            /* Hide back arrow button */
+            button[data-testid="baseButton-secondary"] {display: none !important;}
+            a[data-testid="stSidebarNavLink"] {display: none !important;}
+            div[data-testid="collapsedControl-container"] {display: none !important;}
+            nav[data-testid="stSidebar"] {display: none !important;}
+            div.embeddedapp-wrapper {
+                margin-left: 0 !important;
+            }
+            div.viewerBadge {display: none !important;}
+            /* Hide all sidebar elements */
+            div.stApp > header {display: none !important;}
+            div.stApp > div[data-testid="stDecoration"] {display: none !important;}
+            button.step-up, button.step-down {display: none !important;}
+            section.main > div.block-container {padding-left: 20px !important; padding-right: 20px !important;}
         </style>
     """
     st.markdown(hide_sidebar_style, unsafe_allow_html=True)
