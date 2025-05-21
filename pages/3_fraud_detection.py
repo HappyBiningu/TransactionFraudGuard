@@ -4,6 +4,7 @@ import joblib
 from datetime import datetime, timedelta
 import sqlite3
 import os
+import sys
 import hashlib
 from typing import Optional, Tuple, Dict, Any
 import logging
@@ -13,6 +14,10 @@ import io
 import plotly.express as px
 import plotly.graph_objects as go
 import uuid
+
+# Add the root directory to the path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from sidebar import render_sidebar
 
 # Configure logging
 logging.basicConfig(

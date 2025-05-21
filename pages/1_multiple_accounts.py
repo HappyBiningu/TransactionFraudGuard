@@ -9,6 +9,7 @@ import os
 # Add the root directory to the path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from auth import require_auth, get_current_user
+from sidebar import render_sidebar
 
 # Constants
 DB_FILE = "transactions.db"
@@ -16,6 +17,9 @@ PAGE_SIZE = 50
 
 # Set page config
 st.set_page_config(page_title="Multiple Accounts Analysis", page_icon="🔍", layout="wide")
+
+# Render sidebar navigation
+render_sidebar()
 
 # Apply authentication
 @require_auth

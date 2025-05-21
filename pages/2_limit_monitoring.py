@@ -8,6 +8,11 @@ import plotly.express as px
 import plotly.graph_objects as go
 import logging
 import os
+import sys
+
+# Add the root directory to the path for imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from sidebar import render_sidebar
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +31,9 @@ st.set_page_config(
     page_icon="🚦",
     layout="wide"
 )
+
+# Render sidebar navigation
+render_sidebar()
 
 # Database functions
 def create_connection():
