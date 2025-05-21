@@ -41,6 +41,9 @@ st.set_page_config(
     layout="wide"
 )
 
+# Render sidebar navigation
+render_sidebar()
+
 # Database schema
 SCHEMA = {
     FRAUD_TABLE: f"""

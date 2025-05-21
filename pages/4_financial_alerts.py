@@ -31,6 +31,9 @@ st.set_page_config(
     layout="wide"
 )
 
+# Render sidebar navigation
+render_sidebar()
+
 # Initialize the database
 def init_database():
     """Initialize the database with necessary tables if they don't exist"""
