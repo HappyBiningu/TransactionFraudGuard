@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 DBS = {
     "Accounts Analysis": "transactions.db",
     "Limit Monitoring": "transaction_monitoring.db",
-    "Fraud Detection": "fraud_detection.db"
+    "Fraud Detection": "fraud_detection.db",
+    "Financial Alerts": "financial_alerts.db"
 }
 
 # Helper functions
@@ -63,6 +64,7 @@ st.sidebar.page_link("app.py", label="📈 Dashboard Home", icon="🏠")
 st.sidebar.page_link("pages/1_multiple_accounts.py", label="👥 Multiple Accounts Analysis", icon="🔍")
 st.sidebar.page_link("pages/2_limit_monitoring.py", label="🚦 Limit Monitoring", icon="⚠️")
 st.sidebar.page_link("pages/3_fraud_detection.py", label="🛡️ Fraud Detection System", icon="🔒")
+st.sidebar.page_link("pages/4_financial_alerts.py", label="🚨 Financial Alerts", icon="📊")
 
 # System status
 st.sidebar.markdown("---")
@@ -125,6 +127,69 @@ with cols[2]:
         st.metric("Users", f"{users:,}" if isinstance(users, (int, float)) else users)
     else:
         st.warning("Database not found. Please initialize the module first.")
+        
+# Create a new row for Financial Alerts
+st.markdown("### 🚨 Financial Alert System")
+alert_cols = st.columns(3)
+
+# --- financial_alerts.db ---
+with alert_cols[0]:
+    if check_database_exists(DBS["Financial Alerts"]):
+        alerts = fetch_metric(DBS["Financial Alerts"], "SELECT COUNT(*) FROM alerts")
+        new_alerts = fetch_metric(DBS["Financial Alerts"], "SELECT COUNT(*) FROM alerts WHERE status = 'new'")
+        critical_alerts = fetch_metric(DBS["Financial Alerts"], "SELECT COUNT(*) FROM alerts WHERE severity = 'critical'")
+        
+        st.metric("Total Alerts", f"{alerts:,}" if isinstance(alerts, (int, float)) else alerts)
+        st.metric("New Alerts", f"{new_alerts:,}" if isinstance(new_alerts, (int, float)) else new_alerts)
+        st.metric("Critical Alerts", f"{critical_alerts:,}" if isinstance(critical_alerts, (int, float)) else critical_alerts)
+    else:
+        st.warning("Financial Alerts database not found. Please initialize the module first.")
+        
+with alert_cols[1]:
+    if check_database_exists(DBS["Financial Alerts"]):
+        # Get alert types statistics
+        types_query = """
+            SELECT alert_type, COUNT(*) as count 
+            FROM alerts 
+            GROUP BY alert_type 
+            ORDER BY count DESC 
+            LIMIT 3
+        """
+        conn = sqlite3.connect(DBS["Financial Alerts"])
+        types_df = pd.read_sql_query(types_query, conn)
+        conn.close()
+        
+        if not types_df.empty:
+            st.subheader("Top Alert Types")
+            for _, row in types_df.iterrows():
+                st.write(f"• {row['alert_type'].replace('_', ' ').title()}: {row['count']}")
+        else:
+            st.write("No alert type data available")
+    else:
+        st.write("")
+        
+with alert_cols[2]:
+    if check_database_exists(DBS["Financial Alerts"]):
+        # Get recent alerts
+        recent_query = """
+            SELECT date(created_at) as alert_date, COUNT(*) as count
+            FROM alerts
+            GROUP BY date(created_at)
+            ORDER BY date(created_at) DESC
+            LIMIT 5
+        """
+        conn = sqlite3.connect(DBS["Financial Alerts"])
+        recent_df = pd.read_sql_query(recent_query, conn)
+        conn.close()
+        
+        if not recent_df.empty:
+            st.subheader("Recent Alert Activity")
+            for _, row in recent_df.iterrows():
+                st.write(f"• {row['alert_date']}: {row['count']} alerts")
+        else:
+            st.write("No recent alert data available")
+    else:
+        st.write("")
 
 # Data range overview
 st.markdown("### 🗓️ Data Ranges")
@@ -158,7 +223,7 @@ with dr_cols[2]:
 st.markdown("---")
 st.header("📁 Open Modules")
 
-col_mod1, col_mod2, col_mod3 = st.columns(3)
+col_mod1, col_mod2 = st.columns(2)
 with col_mod1:
     st.page_link("pages/1_multiple_accounts.py", label="🔍 Multiple Accounts Analysis", icon="🔗")
     st.markdown("""
@@ -174,13 +239,22 @@ with col_mod2:
     - Detect limit violations and circumvention
     - Configure threshold settings
     """)
-    
+
+col_mod3, col_mod4 = st.columns(2)
 with col_mod3:
     st.page_link("pages/3_fraud_detection.py", label="🛡️ Fraud Detection System", icon="🔗")
     st.markdown("""
     - ML-based transaction risk scoring
     - Batch processing of transactions
     - Visualize suspicious activity
+    """)
+    
+with col_mod4:
+    st.page_link("pages/4_financial_alerts.py", label="🚨 Financial Alerts", icon="🔗")
+    st.markdown("""
+    - Real-time alert tracking
+    - Multi-level severity system
+    - Automated rule-based detection
     """)
 
 st.markdown("---")
