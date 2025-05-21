@@ -201,16 +201,16 @@ def login_page():
                         else:
                             st.error("Invalid username or password")
         
-        # Sign up option below the form
+        # Sign up option below the form with prominent styling
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            col_msg, col_btn = st.columns([3, 2])
-            with col_msg:
-                st.markdown("Don't have an account?", unsafe_allow_html=True)
-            with col_btn:
-                if st.button("Sign Up", key="signup_btn"):
-                    st.session_state.show_signup = True
-                    st.rerun()
+            st.write("")
+            st.markdown("<h4 style='text-align: center; margin-top: 20px;'>Don't have an account?</h4>", unsafe_allow_html=True)
+            st.markdown("<div style='display: flex; justify-content: center;'>", unsafe_allow_html=True)
+            if st.button("Sign Up →", type="primary", key="signup_btn", use_container_width=True):
+                st.session_state.show_signup = True
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
     
     # Sign-up form
     else:
@@ -249,13 +249,13 @@ def login_page():
                             st.error(message)
             
             # Login option below the form
-            col_msg, col_btn = st.columns([3, 2])
-            with col_msg:
-                st.markdown("Already have an account?", unsafe_allow_html=True)
-            with col_btn:
-                if st.button("Log In", key="login_btn"):
-                    st.session_state.show_signup = False
-                    st.rerun()
+            st.write("")
+            st.markdown("<h4 style='text-align: center; margin-top: 20px;'>Already have an account?</h4>", unsafe_allow_html=True)
+            st.markdown("<div style='display: flex; justify-content: center;'>", unsafe_allow_html=True)
+            if st.button("Log In →", type="primary", key="login_btn", use_container_width=True):
+                st.session_state.show_signup = False
+                st.rerun()
+            st.markdown("</div>", unsafe_allow_html=True)
     
     return False
 
