@@ -5,7 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from auth import login_page, require_auth
-from sidebar import render_sidebar
+from top_navigation import render_top_navigation
 from theme_utils import apply_custom_theme
 
 
