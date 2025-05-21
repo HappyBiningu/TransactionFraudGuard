@@ -189,9 +189,14 @@ def main():
     with col2:
         if st.button("🔄 Generate New Alerts", key="generate_alerts"):
             with st.spinner("Generating alerts from real transaction data..."):
-                results = efa.generate_all_alerts()
-                st.success(f"Generated {results['total']} new alerts from real data")
-                st.rerun()
+                try:
+                    import initialize_real_alerts as ira
+                    ira.main()
+                    st.success(f"Generated new alerts from real transaction data")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Error generating alerts: {str(e)}")
+                    st.info("Using existing alert data instead")
     
     # Get alert counts
     alert_counts = get_alert_counts()
