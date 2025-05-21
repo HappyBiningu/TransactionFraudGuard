@@ -89,26 +89,26 @@ if is_authenticated:
     st.markdown("""
     <style>
         :root {
-            --primary-color: #2563EB;
-            --primary-light: #60A5FA;
-            --primary-dark: #1E40AF; 
-            --secondary-color: #10B981;
-            --secondary-light: #6EE7B7;
-            --tertiary-color: #F59E0B;
-            --tertiary-light: #FCD34D;
-            --background-light: #F9FAFB;
+            --primary-color: #8B4513;  /* SaddleBrown */
+            --primary-light: #A0522D; /* Sienna */
+            --primary-dark: #5D2906;  /* Darker Brown */
+            --secondary-color: #D2691E; /* Chocolate */
+            --secondary-light: #CD853F; /* Peru */
+            --tertiary-color: #B8860B; /* DarkGoldenrod */
+            --tertiary-light: #DAA520; /* Goldenrod */
+            --background-light: #FFF8E7; /* Lighter warm beige */
             --background-card: #FFFFFF;
-            --text-dark: #1F2937;
-            --text-muted: #6B7280;
-            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --text-dark: #3E2723; /* Dark Brown */
+            --text-muted: #6D4C41; /* Brown 600 */
+            --card-shadow: 0 10px 15px -3px rgba(139, 69, 19, 0.1), 0 4px 6px -2px rgba(139, 69, 19, 0.05);
+            --card-shadow-hover: 0 20px 25px -5px rgba(139, 69, 19, 0.1), 0 10px 10px -5px rgba(139, 69, 19, 0.04);
             --border-radius: 12px;
             --gradient-blue: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             --gradient-green: linear-gradient(135deg, var(--secondary-color), var(--secondary-light));
             --gradient-amber: linear-gradient(135deg, var(--tertiary-color), var(--tertiary-light));
-            --danger-color: #DC2626;
-            --warning-color: #F59E0B;
-            --success-color: #10B981;
+            --danger-color: #C62828; /* Red 800 */
+            --warning-color: #B8860B; /* DarkGoldenrod */
+            --success-color: #2E7D32; /* Green 800 */
         }
         
         /* Dashboard Pills */
