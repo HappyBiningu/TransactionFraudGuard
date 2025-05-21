@@ -29,7 +29,8 @@ DB_FILE = "transaction_monitoring.db"
 st.set_page_config(
     page_title="Transaction Limit Monitoring",
     page_icon="🚦",
-    layout="wide"
+    layout="wide",
+    menu_items=None
 )
 
 # Render sidebar navigation

@@ -28,7 +28,8 @@ TABLES = [
 st.set_page_config(
     page_title="Financial Alerts",
     page_icon="🔔",
-    layout="wide"
+    layout="wide",
+    menu_items=None
 )
 
 # Render sidebar navigation

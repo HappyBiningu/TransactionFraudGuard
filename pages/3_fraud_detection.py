@@ -38,7 +38,8 @@ MODEL_PATH = "fraud_detection_pipeline.pkl"
 st.set_page_config(
     page_title="Fraud Detection System",
     page_icon="🛡️",
-    layout="wide"
+    layout="wide",
+    menu_items=None
 )
 
 # Render sidebar navigation
