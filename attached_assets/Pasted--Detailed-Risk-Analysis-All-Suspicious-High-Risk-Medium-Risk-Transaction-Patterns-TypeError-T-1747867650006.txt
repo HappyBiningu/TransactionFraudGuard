@@ -1,0 +1,28 @@
+📊 Detailed Risk Analysis
+
+All Suspicious
+
+High Risk
+
+Medium Risk
+
+Transaction Patterns
+TypeError: The provided value is non-finite
+draw@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:194:49274
+@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:194:52465
+@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:172:15248
+Td@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:10243
+@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:9115
+xa@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:1657
+@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:6658
+Fr@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:1882
+yu@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:6150
+Mu@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:30631
+@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:41864
+@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.CtXupx4d.js:165:42213
+Cs@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.C1z8KpLA.js:48:26707
+Tu@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.C1z8KpLA.js:48:34813
+wu@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.C1z8KpLA.js:48:34649
+wu@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.C1z8KpLA.js:48:34540
+Ap@https://08e01567-3a80-402a-9523-b3e7ae4deecb-00-jv2s34gwtlld.worf.replit.dev/static/js/index.C1z8KpLA.js:48:34144
+wp@http

@@ -1006,15 +1006,18 @@ def main():
                                 ]
                                 
                                 st.markdown('<div class="suspicious-table">', unsafe_allow_html=True)
+                                # Convert string percentages to numeric format for the progress bar
+                                # Create a copy to avoid modifying the displayed strings
+                                display_df = suspicious_df[display_cols].copy()
+                                
+                                # Remove the progress column configuration and use a simpler display
                                 st.dataframe(
-                                    suspicious_df[display_cols],
+                                    display_df,
                                     use_container_width=True,
                                     column_config={
-                                        "fraud_probability": st.column_config.ProgressColumn(
+                                        "fraud_probability": st.column_config.TextColumn(
                                             "Risk Score",
-                                            format="%s",
-                                            min_value="0%",
-                                            max_value="100%"
+                                            help="Probability of fraudulent transaction"
                                         )
                                     }
                                 )
