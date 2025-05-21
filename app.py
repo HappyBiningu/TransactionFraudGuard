@@ -177,6 +177,153 @@ if is_authenticated:
             margin-bottom: 30px;
         }
         
+        /* Enhanced Metric Cards */
+        .enhanced-metric-card {
+            background-color: var(--background-card);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .enhanced-metric-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--card-shadow-hover);
+        }
+        
+        .enhanced-metric-card::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 5px;
+            top: 0;
+            left: 0;
+            transition: height 0.3s ease-in-out;
+        }
+        
+        .enhanced-metric-card:hover::before {
+            height: 8px;
+        }
+        
+        .accounts-card::before {
+            background: var(--gradient-blue);
+        }
+        
+        .limits-card::before {
+            background: var(--gradient-green);
+        }
+        
+        .fraud-card::before {
+            background: var(--gradient-amber);
+        }
+        
+        .metric-card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        
+        .metric-card-icon {
+            font-size: 1.75rem;
+            margin-right: 0.75rem;
+        }
+        
+        .metric-card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .metric-card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .primary-metric {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+            line-height: 1.1;
+        }
+        
+        .metric-label {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+        
+        .metric-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        
+        .secondary-metric {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .secondary-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        
+        .secondary-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            margin-top: auto;
+        }
+        
+        .trend-up {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+        
+        .trend-down {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+        
+        .trend-neutral {
+            background-color: rgba(107, 114, 128, 0.1);
+            color: var(--text-muted);
+        }
+        
+        .trend-icon {
+            margin-right: 0.5rem;
+        }
+        
+        .trend-value {
+            margin-right: 0.5rem;
+        }
+        
+        .trend-period {
+            font-size: 0.8rem;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+        
         .main-container {
             background-color: var(--background-light);
             border-radius: var(--border-radius);
@@ -706,20 +853,64 @@ if is_authenticated:
         files = fetch_metric(DBS["Limit Monitoring"], "SELECT COUNT(*) FROM uploaded_files")
         settings = fetch_metric(DBS["Limit Monitoring"], "SELECT COUNT(*) FROM settings")
         
+        # Calculate day-to-day change in violations
+        violations_today = fetch_metric(
+            DBS["Limit Monitoring"],
+            "SELECT COUNT(*) FROM violations WHERE DATE(timestamp) = DATE('now')"
+        )
+        violations_yesterday = fetch_metric(
+            DBS["Limit Monitoring"],
+            "SELECT COUNT(*) FROM violations WHERE DATE(timestamp) = DATE('now', '-1 day')"
+        )
+        
+        # Ensure we're working with numbers for calculation
+        try:
+            today_count = int(violations_today)
+            yesterday_count = int(violations_yesterday)
+            
+            if yesterday_count > 0:
+                daily_change = ((today_count - yesterday_count) / yesterday_count) * 100
+            else:
+                daily_change = 100 if today_count > 0 else 0
+        except (ValueError, TypeError):
+            daily_change = 0
+            
+        # Determine trend icon and class
+        if daily_change > 0:
+            trend_icon = "🔺"
+            trend_class = "trend-down"  # Increasing violations is bad
+        elif daily_change < 0:
+            trend_icon = "🔽"
+            trend_class = "trend-up"  # Decreasing violations is good
+        else:
+            trend_icon = "⚖️"
+            trend_class = "trend-neutral"
+            
         st.markdown(f"""
-        <div class="metric-card metric-card-limits">
-            <div class="metric-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#10B981" viewBox="0 0 16 16">
-                    <path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/>
-                </svg>
+        <div class="enhanced-metric-card limits-card">
+            <div class="metric-card-header">
+                <div class="metric-card-icon">⚠️</div>
+                <div class="metric-card-title">Limit Monitoring</div>
             </div>
-            <div class="module-title module-title-limits">Limit Monitoring</div>
-            <div class="metric-label">Violations Detected</div>
-            <div class="metric-value metric-value-limits">{violations:,}</div>
-            <div class="metric-label">Files Analyzed</div>
-            <div class="metric-value metric-value-limits">{files:,}</div>
-            <div class="metric-label">Rule Settings</div>
-            <div class="metric-value metric-value-limits">{settings:,}</div>
+            <div class="metric-card-body">
+                <div class="primary-metric">{violations:,}</div>
+                <div class="metric-label">Total Violations</div>
+                <div class="metric-details">
+                    <div class="secondary-metric">
+                        <span class="secondary-value">{files:,}</span>
+                        <span class="secondary-label">Files Analyzed</span>
+                    </div>
+                    <div class="secondary-metric">
+                        <span class="secondary-value">{settings:,}</span>
+                        <span class="secondary-label">Rule Settings</span>
+                    </div>
+                </div>
+                <div class="metric-trend {trend_class}">
+                    <span class="trend-icon">{trend_icon}</span>
+                    <span class="trend-value">{abs(daily_change):.1f}%</span>
+                    <span class="trend-period">day-to-day change</span>
+                </div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -729,20 +920,63 @@ if is_authenticated:
         suspicious = fetch_metric(DBS["Fraud Detection"], "SELECT COUNT(*) FROM fraud_detection_results WHERE predicted_suspicious = 1")
         users = fetch_metric(DBS["Fraud Detection"], "SELECT COUNT(*) FROM users")
         
+        # Calculate fraud detection rate
+        detection_rate = 0
+        if frauds > 0:
+            detection_rate = (suspicious / frauds) * 100
+            
+        # Get recent trend in fraud detection
+        recent_suspicious = fetch_metric(
+            DBS["Fraud Detection"], 
+            "SELECT COUNT(*) FROM fraud_detection_results WHERE predicted_suspicious = 1 AND date(timestamp) >= date('now', '-7 day')"
+        )
+        previous_suspicious = fetch_metric(
+            DBS["Fraud Detection"], 
+            "SELECT COUNT(*) FROM fraud_detection_results WHERE predicted_suspicious = 1 AND date(timestamp) BETWEEN date('now', '-14 day') AND date('now', '-8 day')"
+        )
+        
+        # Calculate week-over-week change
+        if previous_suspicious > 0:
+            fraud_change = ((recent_suspicious - previous_suspicious) / previous_suspicious) * 100
+        else:
+            fraud_change = 100 if recent_suspicious > 0 else 0
+            
+        # Determine trend icon and class (for fraud, an increase is bad)
+        if fraud_change > 0:
+            trend_icon = "🔍"
+            trend_class = "trend-down"
+        elif fraud_change < 0:
+            trend_icon = "👍"
+            trend_class = "trend-up"
+        else:
+            trend_icon = "⚖️"
+            trend_class = "trend-neutral"
+        
         st.markdown(f"""
-        <div class="metric-card metric-card-fraud">
-            <div class="metric-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="#F59E0B" viewBox="0 0 16 16">
-                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
-                </svg>
+        <div class="enhanced-metric-card fraud-card">
+            <div class="metric-card-header">
+                <div class="metric-card-icon">🔒</div>
+                <div class="metric-card-title">Fraud Detection</div>
             </div>
-            <div class="module-title module-title-fraud">Fraud Detection</div>
-            <div class="metric-label">Total Analyses</div>
-            <div class="metric-value metric-value-fraud">{frauds:,}</div>
-            <div class="metric-label">Suspicious Detected</div>
-            <div class="metric-value metric-value-fraud">{suspicious:,}</div>
-            <div class="metric-label">System Users</div>
-            <div class="metric-value metric-value-fraud">{users:,}</div>
+            <div class="metric-card-body">
+                <div class="primary-metric">{suspicious:,}</div>
+                <div class="metric-label">Suspicious Transactions</div>
+                <div class="metric-details">
+                    <div class="secondary-metric">
+                        <span class="secondary-value">{frauds:,}</span>
+                        <span class="secondary-label">Total Analyses</span>
+                    </div>
+                    <div class="secondary-metric">
+                        <span class="secondary-value">{detection_rate:.1f}%</span>
+                        <span class="secondary-label">Detection Rate</span>
+                    </div>
+                </div>
+                <div class="metric-trend {trend_class}">
+                    <span class="trend-icon">{trend_icon}</span>
+                    <span class="trend-value">{abs(fraud_change):.1f}%</span>
+                    <span class="trend-period">week-over-week</span>
+                </div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
     
