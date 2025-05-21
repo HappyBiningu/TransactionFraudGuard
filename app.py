@@ -963,7 +963,7 @@ if is_authenticated:
         WHERE individual_id IN (
             SELECT individual_id FROM transactions 
             GROUP BY individual_id 
-            HAVING COUNT(DISTINCT bank_id) > 1
+            HAVING COUNT(DISTINCT bank_name) > 1
         )
         AND strftime('%Y-%m', timestamp) = strftime('%Y-%m', 'now')
         """
@@ -972,7 +972,7 @@ if is_authenticated:
         WHERE individual_id IN (
             SELECT individual_id FROM transactions 
             GROUP BY individual_id 
-            HAVING COUNT(DISTINCT bank_id) > 1
+            HAVING COUNT(DISTINCT bank_name) > 1
         )
         AND strftime('%Y-%m', timestamp) = strftime('%Y-%m', datetime('now', '-1 month'))
         """
@@ -1026,13 +1026,9 @@ if is_authenticated:
         try:
             # Get transaction volume by bank
             query = """
-            SELECT b.bank_name, COUNT(*) as transaction_count
-            FROM transactions t
-            JOIN (
-                SELECT DISTINCT bank_id, 'Bank ' || bank_id as bank_name
-                FROM transactions
-            ) b ON t.bank_id = b.bank_id
-            GROUP BY b.bank_name
+            SELECT bank_name, COUNT(*) as transaction_count
+            FROM transactions
+            GROUP BY bank_name
             ORDER BY transaction_count DESC
             LIMIT 10
             """
@@ -1211,7 +1207,7 @@ if is_authenticated:
             # Get accounts distribution data
             query = """
             SELECT 
-                COUNT(DISTINCT bank_id) as bank_count,
+                COUNT(DISTINCT bank_name) as bank_count,
                 COUNT(DISTINCT individual_id) as individual_count
             FROM transactions
             GROUP BY individual_id
