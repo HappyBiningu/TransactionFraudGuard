@@ -89,26 +89,27 @@ if is_authenticated:
     st.markdown("""
     <style>
         :root {
-            --primary-color: #8B4513;  /* SaddleBrown */
-            --primary-light: #A0522D; /* Sienna */
-            --primary-dark: #5D2906;  /* Darker Brown */
-            --secondary-color: #D2691E; /* Chocolate */
-            --secondary-light: #CD853F; /* Peru */
-            --tertiary-color: #B8860B; /* DarkGoldenrod */
-            --tertiary-light: #DAA520; /* Goldenrod */
-            --background-light: #FFF8E7; /* Lighter warm beige */
+            /* Professional financial theme with dark slate and teal accents */
+            --primary-color: #0F4C75;  /* Dark blue - trustworthy and professional */
+            --primary-light: #3282B8; /* Medium blue - modern and clean */
+            --primary-dark: #1B262C;  /* Dark slate - stability and security */
+            --secondary-color: #00B8A9; /* Teal - analytics and innovation */
+            --secondary-light: #4FD1C5; /* Light teal - fresh and engaging */
+            --tertiary-color: #5E548E; /* Purple - wealth and intelligence */
+            --tertiary-light: #9F86C0; /* Light purple - sophistication */
+            --background-light: #F8FAFC; /* Off-white - clean but not stark */
             --background-card: #FFFFFF;
-            --text-dark: #3E2723; /* Dark Brown */
-            --text-muted: #6D4C41; /* Brown 600 */
-            --card-shadow: 0 10px 15px -3px rgba(139, 69, 19, 0.1), 0 4px 6px -2px rgba(139, 69, 19, 0.05);
-            --card-shadow-hover: 0 20px 25px -5px rgba(139, 69, 19, 0.1), 0 10px 10px -5px rgba(139, 69, 19, 0.04);
-            --border-radius: 12px;
-            --gradient-blue: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            --text-dark: #1E293B; /* Dark slate blue - readable and professional */
+            --text-muted: #64748B; /* Slate gray - subtle and elegant */
+            --card-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+            --card-shadow-hover: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.03);
+            --border-radius: 10px;
+            --gradient-blue: linear-gradient(135deg, var(--primary-color), var(--primary-light));
             --gradient-green: linear-gradient(135deg, var(--secondary-color), var(--secondary-light));
             --gradient-amber: linear-gradient(135deg, var(--tertiary-color), var(--tertiary-light));
-            --danger-color: #C62828; /* Red 800 */
-            --warning-color: #B8860B; /* DarkGoldenrod */
-            --success-color: #2E7D32; /* Green 800 */
+            --danger-color: #E11D48; /* Rose red - alerts and warnings */
+            --warning-color: #F59E0B; /* Amber - caution */
+            --success-color: #10B981; /* Emerald - success and positive trends */
         }
         
         /* Dashboard Pills */
@@ -334,13 +335,13 @@ if is_authenticated:
         .main-header {
             font-size: 2.5rem;
             font-weight: 800;
-            background-image: linear-gradient(135deg, #1E3A8A, #3B82F6);
+            background-image: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 2px solid #E5E7EB;
+            border-bottom: 2px solid rgba(15, 23, 42, 0.1);
             letter-spacing: -0.025em;
         }
         
@@ -348,20 +349,22 @@ if is_authenticated:
             font-size: 1.8rem;
             font-weight: 700;
             color: var(--primary-dark);
-            margin: 2rem 0 1.5rem 0;
-            padding-bottom: 0.5rem;
+            margin: 2rem 0 2rem 0;
+            padding-bottom: 0.75rem;
             position: relative;
+            text-align: center;
         }
         
         .section-header::after {
             content: "";
             position: absolute;
             bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
             background: var(--gradient-blue);
-            border-radius: 2px;
+            border-radius: 3px;
         }
         
         .metric-card {
