@@ -171,67 +171,76 @@ def login_page():
     
     st.title("Financial Intelligence Platform")
     
-    # Login form
+    # Login form - with column layout to control width
     if not st.session_state.show_signup:
-        with st.form("login_form"):
-            st.subheader("🔐 Login")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            submitted = st.form_submit_button("Login")
-            
-            if submitted:
-                if not username or not password:
-                    st.error("Please provide both username and password")
-                else:
-                    success, user_info = authenticate_user(username, password)
-                    if success:
-                        st.session_state.user_info = user_info
-                        st.success(f"Welcome, {user_info['full_name']}!")
-                        st.rerun()
-                    else:
-                        st.error("Invalid username or password")
+        # Create column layout to constrain width
+        col1, col2, col3 = st.columns([1, 2, 1])
         
-        st.write("Don't have an account?")
-        if st.button("Sign Up"):
-            st.session_state.show_signup = True
-            st.rerun()
+        with col2:
+            with st.form("login_form"):
+                st.subheader("🔐 Login")
+                username = st.text_input("Username")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Login")
+                
+                if submitted:
+                    if not username or not password:
+                        st.error("Please provide both username and password")
+                    else:
+                        success, user_info = authenticate_user(username, password)
+                        if success:
+                            st.session_state.user_info = user_info
+                            st.success(f"Welcome, {user_info['full_name']}!")
+                            st.rerun()
+                        else:
+                            st.error("Invalid username or password")
+        
+        with col2:
+            st.write("Don't have an account?")
+            if st.button("Sign Up"):
+                st.session_state.show_signup = True
+                st.rerun()
     
     # Sign-up form
     else:
-        with st.form("signup_form"):
-            st.subheader("📝 Create Account")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            confirm_password = st.text_input("Confirm Password", type="password")
-            full_name = st.text_input("Full Name")
-            role = st.selectbox("Role", ["analyst", "supervisor"])
-            
-            submitted = st.form_submit_button("Create Account")
-            
-            if submitted:
-                if not username or not password or not confirm_password or not full_name:
-                    st.error("All fields are required")
-                elif password != confirm_password:
-                    st.error("Passwords do not match")
-                else:
-                    success, message = create_user(username, password, full_name, role)
-                    if success:
-                        st.success(message)
-                        # Log in the user automatically
-                        st.session_state.user_info = {
-                            "username": username,
-                            "full_name": full_name,
-                            "role": role
-                        }
-                        st.session_state.show_signup = False
-                        st.rerun()
-                    else:
-                        st.error(message)
+        # Create column layout to constrain width
+        col1, col2, col3 = st.columns([1, 2, 1])
         
-        st.write("Already have an account?")
-        if st.button("Log In"):
-            st.session_state.show_signup = False
-            st.rerun()
+        with col2:
+            with st.form("signup_form"):
+                st.subheader("📝 Create Account")
+                username = st.text_input("Username")
+                password = st.text_input("Password", type="password")
+                confirm_password = st.text_input("Confirm Password", type="password")
+                full_name = st.text_input("Full Name")
+                role = st.selectbox("Role", ["analyst", "supervisor"])
+                
+                submitted = st.form_submit_button("Create Account")
+                
+                if submitted:
+                    if not username or not password or not confirm_password or not full_name:
+                        st.error("All fields are required")
+                    elif password != confirm_password:
+                        st.error("Passwords do not match")
+                    else:
+                        success, message = create_user(username, password, full_name, role)
+                        if success:
+                            st.success(message)
+                            # Log in the user automatically
+                            st.session_state.user_info = {
+                                "username": username,
+                                "full_name": full_name,
+                                "role": role
+                            }
+                            st.session_state.show_signup = False
+                            st.rerun()
+                        else:
+                            st.error(message)
+            
+            st.write("Already have an account?")
+            if st.button("Log In"):
+                st.session_state.show_signup = False
+                st.rerun()
     
     return False
 
