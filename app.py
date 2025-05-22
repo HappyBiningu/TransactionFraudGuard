@@ -119,12 +119,11 @@ def get_system_users():
         return {"total": 3, "active": 2, "roles": {"analyst": 2, "admin": 1}, "recent_logins": 1}
 
 # Check for logout parameter in URL
-query_params = st.experimental_get_query_params()
-if "logout" in query_params and query_params["logout"][0] == "true":
+if "logout" in st.query_params and st.query_params["logout"] == "true":
     # Clear session state and redirect
     st.session_state.user_info = None
     # Remove the logout parameter
-    st.experimental_set_query_params()
+    st.query_params.clear()
     st.rerun()
 
 # Check if user is logged in

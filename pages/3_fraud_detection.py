@@ -57,6 +57,14 @@ use_default_navigation()
 from auth import get_current_user
 user_info = get_current_user() or {}
 
+# Check for logout parameter in URL
+if "logout" in st.query_params and st.query_params["logout"] == "true":
+    # Clear session state and redirect
+    st.session_state.user_info = None
+    # Remove the logout parameter
+    st.query_params.clear()
+    st.rerun()
+
 # Add user info to sidebar with modern styling
 with st.sidebar:
     st.markdown(f"""
@@ -70,7 +78,7 @@ with st.sidebar:
                 <p style="margin: 0; font-size: 12px; opacity: 0.9;">{user_info.get('role', 'Analyst').capitalize()}</p>
             </div>
         </div>
-        <a href="/?logout=true" style="display: block; text-align: center; padding: 8px; margin-top: 10px; background-color: rgba(255, 255, 255, 0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 14px; transition: all 0.3s;">
+        <a href="/?logout=true" style="display: block; text-align: center; padding: 8px; margin-top: 10px; background-color: rgba(255, 255, 255, 0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 14px; transition: all 0.3s; font-weight: 500;">
             <span style="margin-right: 5px;">🚪</span> Logout
         </a>
     </div>

@@ -46,12 +46,11 @@ from auth import get_current_user
 user_info = get_current_user() or {}
 
 # Check for logout parameter in URL
-query_params = st.experimental_get_query_params()
-if "logout" in query_params and query_params["logout"][0] == "true":
+if "logout" in st.query_params and st.query_params["logout"] == "true":
     # Clear session state and redirect
     st.session_state.user_info = None
     # Remove the logout parameter
-    st.experimental_set_query_params()
+    st.query_params.clear()
     st.rerun()
 
 # Add user info to sidebar with modern styling
