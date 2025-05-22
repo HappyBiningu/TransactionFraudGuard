@@ -2165,10 +2165,8 @@ def main():
                                 xaxis_title="Date",
                                 yaxis_title="Number of Transactions",
                                 yaxis2=dict(
-                                    title=dict(
-                                        text="Suspicious %",
-                                        font=dict(color="#FFB300")
-                                    ),
+                                    title="Suspicious %",
+                                    titlefont=dict(color="#FFB300"),
                                     tickfont=dict(color="#FFB300"),
                                     anchor="x",
                                     overlaying="y",

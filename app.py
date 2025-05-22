@@ -1654,7 +1654,7 @@ if is_authenticated:
                         linecolor='rgba(230,230,230,0.8)'
                     ),
                     yaxis2=dict(
-                        title='Transactions Analyzed',
+                        title="Transactions Analyzed",
                         titlefont=dict(color='#3B82F6'),
                         tickfont=dict(color='#3B82F6'),
                         overlaying='y',
