@@ -1209,9 +1209,8 @@ if is_authenticated:
     </style>
     """, unsafe_allow_html=True)
     
-    # KPI Summary Section
+    # KPI Summary Section - removed container
     st.markdown('<h2 class="section-header">Key Performance Indicators</h2>', unsafe_allow_html=True)
-    st.markdown('<div class="kpi-container">', unsafe_allow_html=True)
     
     # Create KPI summary
     kpi_cols = st.columns(4)
@@ -1415,9 +1414,6 @@ if is_authenticated:
             <div class="kpi-period">vs previous month</div>
         </div>
         """, unsafe_allow_html=True)
-    
-    # Close KPI container
-    st.markdown('</div>', unsafe_allow_html=True)
     
     # Interactive Data Visualizations Section
     st.markdown('<h2 class="section-header">Data Insights</h2>', unsafe_allow_html=True)
