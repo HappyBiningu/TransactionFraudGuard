@@ -118,10 +118,19 @@ def get_system_users():
         # Return default values if database error
         return {"total": 3, "active": 2, "roles": {"analyst": 2, "admin": 1}, "recent_logins": 1}
 
+# Check for logout parameter in URL
+query_params = st.experimental_get_query_params()
+if "logout" in query_params and query_params["logout"][0] == "true":
+    # Clear session state and redirect
+    st.session_state.user_info = None
+    # Remove the logout parameter
+    st.experimental_set_query_params()
+    st.rerun()
+
 # Check if user is logged in
 is_authenticated = login_page()
 
-# Only render navigation if user is authenticated
+# Only render navigation and dashboard if user is authenticated
 if is_authenticated:
     # Apply theme
     apply_custom_theme()

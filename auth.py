@@ -162,13 +162,11 @@ def login_page():
         """
         st.markdown(hide_streamlit_style, unsafe_allow_html=True)
     
-    # Handle logout in the sidebar if user is logged in
+    # User is already authenticated, so we let the app handle the UI
     if st.session_state.user_info:
-        with st.sidebar:
-            st.write("")  # Add some space
-            if st.button("Logout", use_container_width=True, key="logout_button"):
-                st.session_state.user_info = None
-                st.rerun()
+        # We won't put logout in the sidebar here - it will be handled 
+        # in the user profile component in the sidebar by the main app
+        pass
     
     if st.session_state.user_info:
         # Already logged in
