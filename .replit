@@ -2,7 +2,7 @@ modules = ["python-3.11", "postgresql-16"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["freefont_ttf", "glibcLocales", "xdg-utils", "sqlite"]
+packages = ["freefont_ttf", "glibcLocales", "sqlite", "xdg-utils"]
 
 [deployment]
 deploymentTarget = "autoscale"
