@@ -44,13 +44,22 @@ use_default_navigation()
 from auth import get_current_user
 user_info = get_current_user() or {}
 
-# Add user info to sidebar
+# Add user info to sidebar with modern styling
 with st.sidebar:
     st.markdown(f"""
-    <div style="padding: 10px; margin-bottom: 20px; border-bottom: 1px solid #e6e6e6;">
-        <p style="margin-bottom: 5px;"><strong>Logged in as:</strong></p>
-        <p style="margin-bottom: 2px;"><b>{user_info.get('full_name', 'User')}</b></p>
-        <p style="font-size: 0.9em; color: #666;">Role: {user_info.get('role', 'Analyst').capitalize()}</p>
+    <div style="padding: 15px; margin-bottom: 25px; border-radius: 10px; background: linear-gradient(to right, #0F4C75, #3282B8); color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background-color: white; color: #0F4C75; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; margin-right: 10px;">
+                {user_info.get('full_name', 'User')[0:1].upper()}
+            </div>
+            <div>
+                <p style="margin: 0; font-size: 16px; font-weight: bold;">{user_info.get('full_name', 'User')}</p>
+                <p style="margin: 0; font-size: 12px; opacity: 0.9;">{user_info.get('role', 'Analyst').capitalize()}</p>
+            </div>
+        </div>
+        <a href="/?logout=true" style="display: block; text-align: center; padding: 8px; margin-top: 10px; background-color: rgba(255, 255, 255, 0.2); border-radius: 5px; color: white; text-decoration: none; font-size: 14px; transition: all 0.3s;">
+            <span style="margin-right: 5px;">🚪</span> Logout
+        </a>
     </div>
     """, unsafe_allow_html=True)
 
