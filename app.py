@@ -802,11 +802,10 @@ if is_authenticated:
     </style>
     """, unsafe_allow_html=True)
     
-    # Main header with custom container
-    st.markdown('<div class="main-container">', unsafe_allow_html=True)
+    # Main header with title only - no container
     st.markdown('<h1 class="main-header">Unified Financial Intelligence Platform</h1>', unsafe_allow_html=True)
     
-    # Completely simplified header - removed all subtext
+    # Small margin below title
     st.markdown('<div style="margin-bottom: 20px;"></div>', unsafe_allow_html=True)
     
     # Summary cards section
